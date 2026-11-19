@@ -2,6 +2,8 @@ export { normalizeText, normalizeForMatch, sha256Hex, descriptionHash } from './
 export {
   REQUIREMENT_CATALOG,
   canonicalizeRequirement,
+  findKnownRequirements,
+  isNonSkillLabel,
   requirementCatalogKeys,
   type CanonicalRequirement,
   type RequirementCategory,
@@ -24,6 +26,15 @@ export {
   type WorkModel,
 } from './extraction/schema.js';
 export { salaryAmountsEvidenced } from './extraction/salary.js';
+export { detectLanguage, normalizeExtraction } from './extraction/normalize.js';
+export {
+  PROMPT_VERSION,
+  SCHEMA_VERSION,
+  EXTRACTION_JSON_SCHEMA,
+  buildExtractionMessages,
+  extractionSchemaForPrompt,
+  type ExtractionPromptInput,
+} from './extraction/prompt.js';
 export {
   applyGrounding,
   type GroundingIssue,

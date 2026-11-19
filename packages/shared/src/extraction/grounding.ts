@@ -1,10 +1,11 @@
-import { canonicalizeRequirement, type CanonicalRequirement } from '../domain/requirements.js';
+import { canonicalizeRequirement, findKnownRequirements, isNonSkillLabel, type CanonicalRequirement } from '../domain/requirements.js';
 import { normalizeText } from '../util/text.js';
 import { salaryAmountsEvidenced } from './salary.js';
 import type { Extraction, ExtractedRequirement } from './schema.js';
 
 export type GroundingIssueCode =
   | 'evidence_not_found'
+  | 'not_a_skill'
   | 'salary_not_evidenced'
   | 'salary_rule_violated';
 
@@ -63,6 +64,15 @@ export function applyGrounding(extraction: Extraction, description: string): Gro
       });
       continue;
     }
+    if (isNonSkillLabel(requirement.requirement)) {
+      dropped += 1;
+      issues.push({
+        code: 'not_a_skill',
+        detail: 'modelo de trabalho, local ou benefício não é requisito técnico',
+        requirement: requirement.requirement,
+      });
+      continue;
+    }
     const canonical = canonicalizeRequirement(requirement.requirement);
     if (canonical === null) {
       dropped += 1;
@@ -73,11 +83,34 @@ export function applyGrounding(extraction: Extraction, description: string): Gro
       });
       continue;
     }
+    if (canonical.known) {
+      requirements.push({
+        ...requirement,
+        requirement: canonical.canonical,
+        canonical: canonical.canonical,
+        category: canonical.category,
+        known: true,
+      });
+      continue;
+    }
+    const knownInEvidence = findKnownRequirements(requirement.evidenceSpan);
+    if (knownInEvidence.length > 0) {
+      for (const definition of knownInEvidence.slice(0, 3)) {
+        requirements.push({
+          ...requirement,
+          requirement: definition.canonical,
+          canonical: definition.canonical,
+          category: definition.category,
+          known: true,
+        });
+      }
+      continue;
+    }
     requirements.push({
       ...requirement,
       canonical: canonical.canonical,
       category: canonical.category,
-      known: canonical.known,
+      known: false,
     });
   }
 

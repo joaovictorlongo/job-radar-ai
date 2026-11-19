@@ -50,6 +50,30 @@ The only existing parser targets LinkedIn, which the specification excludes. The
 
 `work_model` and `seniority` are filled from listing metadata when present and refined by the extractor. Collection never sets `salary_published = true`; only the extractor can, and only with grounding and the database constraint.
 
+`lang` is the exception: the collector writes the board's language as a guess (Programathor is a Portuguese board that hosts English posts), and the extractor overwrites it after extraction with a deterministic stop-word detector over the description body (`detectLanguage`, returns `null` when inconclusive and then the model's answer is kept). The detector runs outside the LLM because the model was measured misclassifying an English post as Portuguese.
+
 ## D6 — Extraction cache is keyed by content and extractor version
 
 `extraction_cache (description_hash, extractor_version)` stores the validated payload so reprocessing the same description under the same extractor does not call the LLM again. Changing the prompt adds a new `extractor_version`; old entries stay for comparison and are never overwritten.
+
+## D7 — The extractor is provider-agnostic, and the first measured runs use a local model
+
+The extractor implements one interface (`LlmExtractor`) and speaks the OpenAI chat-completions dialect with `baseURL` configurable, so the provider changes through `.env` only:
+
+| Provider | `LLM_BASE_URL` | Auth |
+|---|---|---|
+| OpenAI | `https://api.openai.com/v1` | `LLM_API_KEY` |
+| Gemini (OpenAI-compatible endpoint) | `https://generativelanguage.googleapis.com/v1beta/openai` | `LLM_API_KEY` |
+| Ollama / LM Studio / vLLM | `http://localhost:11434/v1` | none |
+
+Only the `baseURL`, model and prices differ; prompt, schema, grounding and persistence are the same code path.
+
+Why the first runs are local:
+
+- no OpenAI key on this machine;
+- the Gemini key created at AI Studio answers `402 RESOURCE_EXHAUSTED` ("prepayment credits are depleted") on every model, so the upload of job descriptions would not run;
+- the GitHub Models endpoint rejects the `gh` token (missing `models:read` scope), returning plain text instead of JSON.
+
+`qwen2.5:7b-instruct` runs locally through Ollama with `num_ctx 16384` and `temperature 0`, and honours strict JSON-Schema structured output. It is a development-grade model: it proves the pipeline end to end, and its output quality is measured and reported, not assumed. Swapping to a frontier model is an `.env` change plus a prompt version bump.
+
+Cost is recorded per call as `tokens * price / 1e6` from `LLM_PRICE_INPUT_PER_MTOK` and `LLM_PRICE_OUTPUT_PER_MTOK`. Prices are only set when confirmed against the provider's current pricing page; otherwise both prices stay empty, `cost_usd` is written as `null` and the run summary reports `costKnown: false`. Local inference records `0` because there is no metered billing, and the model name makes the difference explicit.

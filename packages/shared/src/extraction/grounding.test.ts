@@ -129,4 +129,25 @@ describe('applyGrounding', () => {
     const result = applyGrounding(extraction, description);
     expect(result.ok).toBe(true);
   });
+
+  it('normaliza requisito em frase usando o catálogo e o trecho', () => {
+    const extraction = baseExtraction({
+      salary: { published: false, min: null, max: null, currency: null, period: null },
+      requirements: [
+        {
+          requirement: 'Strong experience in code reviews and managing CI/CD pipelines.',
+          kind: 'must',
+          minYears: null,
+          evidenceSpan: 'Strong experience in code reviews and managing CI/CD pipelines.',
+          confidence: 0.9,
+        },
+      ],
+    });
+    const result = applyGrounding(
+      extraction,
+      'Requisitos: Strong experience in code reviews and managing CI/CD pipelines.',
+    );
+    expect(result.extraction?.requirements.map((item) => item.canonical)).toEqual(['ci/cd']);
+    expect(result.extraction?.requirements[0]?.requirement).toBe('ci/cd');
+  });
 });

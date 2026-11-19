@@ -16,8 +16,12 @@ Status: block **B1 (ingestion and database)** implemented and validated locally.
 | Dedupe by `(source, source_job_id)` and by description hash | done |
 | Rate limit per host, retry with backoff, `Retry-After` on 429 | done |
 | CLI collection and requirement seed | done |
+| LLM extractor adapter (OpenAI-compatible: OpenAI, Gemini, Ollama) | done |
+| Versioned prompt, strict JSON-Schema output, Zod validation, grounding | done |
+| Deterministic normalisation (language by body, `years_required` from requirement years) | done |
+| Extraction CLI with content cache and transactional persistence | done |
 | CI: lint, typecheck, tests, migration smoke, salary-gate check | done |
-| LLM extractor, eval harness, matching, Next.js dashboard | not started |
+| Eval harness, matching, Next.js dashboard | not started |
 
 Observed in the local validation run (2026-11-19): 30 jobs stored — 20 from Programathor and 10 from Remote OK — with 30 distinct description hashes. These are sample counts, not performance claims.
 
@@ -50,6 +54,15 @@ pnpm db:migrate
 pnpm db:seed
 pnpm collect --source programathor --limit 20
 pnpm collect --source remoteok --limit 10
+pnpm extract --source programathor --limit 20
+```
+
+`pnpm extract` needs an OpenAI-compatible endpoint; see [`.env.example`](.env.example) for OpenAI, Gemini and a local Ollama block. For a local model:
+
+```bash
+ollama pull qwen2.5:7b-instruct
+printf 'FROM qwen2.5:7b-instruct\nPARAMETER num_ctx 16384\nPARAMETER temperature 0\n' > Modelfile
+ollama create jobradar-qwen -f Modelfile
 ```
 
 The database is exposed on `localhost:55432` (Postgres) and Redis on `localhost:56379`.
@@ -65,6 +78,9 @@ pnpm db:reset --yes   # local database only
 pnpm db:seed
 pnpm collect --source programathor --limit 20
 pnpm collect --source remoteok --limit 10 --dry-run
+pnpm extract --source programathor --limit 20
+pnpm extract --source programathor --limit 5 --dry-run
+pnpm extract --source programathor --limit 20 --force   # re-extracts even if the version matches
 ```
 
 ## Collection rules
@@ -83,8 +99,34 @@ pnpm collect --source remoteok --limit 10 --dry-run
 - `salary.published = true` requires `min` or `max`, a currency and a known period; otherwise every salary field must be `null`.
 - Every requirement needs an `evidence_span` that appears literally in the normalised description; requirements without it are dropped and counted.
 - A published salary whose amounts do not appear in the description rejects the whole extraction. A wrong salary is worse than a missing one.
+- Requirement labels are canonicalised against the taxonomy. A label outside it is resolved from the skills named inside its own evidence span (up to three); with none, the requirement stays as a free-text skill with `known = false`, never dropped silently.
+- Dropping individual requirements does not fail the job; the count goes to the run summary, and the issues are stored in `extraction_runs.raw_output` when the whole extraction is rejected.
 
 `extraction_runs` records model, prompt version, schema version, status, tokens, cost, latency and `raw_output`, including failures.
+
+## Extraction pipeline
+
+```mermaid
+flowchart LR
+  J[(jobs<br/>not yet extracted)] --> C{cache by<br/>description_hash<br/>+ version}
+  C -->|hit| P
+  C -->|miss| L[LLM<br/>strict JSON Schema]
+  L --> Z[Zod]
+  Z --> N[normalise<br/>lang, years]
+  N --> G[grounding<br/>evidence + salary]
+  G -->|ok| P[transaction:<br/>jobs + job_requirements<br/>+ cache + run]
+  G -->|rejected| R[extraction_runs<br/>status]
+  Z -->|invalid| R
+  L -->|error| R
+```
+
+- `apps/worker/src/extract.ts` is the CLI: `--source`, `--limit`, `--dry-run`, `--force`.
+- Every model call is one row in `extraction_runs` with `status = ok | invalid_json | grounding_failed | error`. A rejected extraction never writes derived fields to `jobs`.
+- An `ok` run updates `jobs` (seniority, work model, language, years, salary, `extractor_version`), replaces `job_requirements` and upserts `extraction_cache` in the same transaction, so a crash cannot leave a half-extracted job.
+- Cache hits re-run normalisation and grounding against the stored payload, so a stricter grounding rule does not require a new LLM call.
+- The CLI prints a JSON summary: processed, ok, cache hits, invalid JSON, grounding failures, errors, dropped requirements, tokens in/out, cost and latency p50/p95.
+
+`packages/shared/src/extraction/prompt.ts` holds the versioned prompt. Bumping `PROMPT_VERSION` invalidates the cache by design; the current version is `extract-v2`, which requires 1–4 word requirement labels and forbids inferring the work model from the title or the company.
 
 ## Decisions
 

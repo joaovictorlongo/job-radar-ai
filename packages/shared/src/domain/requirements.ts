@@ -84,6 +84,8 @@ export const REQUIREMENT_CATALOG: readonly RequirementDefinition[] = [
 
   { canonical: 'communication', category: 'soft', aliases: ['comunicação', 'communicative'] },
   { canonical: 'english', category: 'soft', aliases: ['inglês', 'english fluency'] },
+  { canonical: 'portuguese', category: 'soft', aliases: ['português', 'fluent portuguese'] },
+  { canonical: 'spanish', category: 'soft', aliases: ['espanhol', 'español'] },
   { canonical: 'leadership', category: 'soft', aliases: ['liderança', 'lead'] },
   { canonical: 'teamwork', category: 'soft', aliases: ['trabalho em equipe'] },
   { canonical: 'problem solving', category: 'soft', aliases: ['resolução de problemas'] },
@@ -96,7 +98,8 @@ interface CatalogEntry {
 
 function buildKey(raw: string): string {
   return raw
-    .normalize('NFKC')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9+#./ ]/g, ' ')
     .replace(/\s+/g, ' ')
@@ -123,6 +126,13 @@ export interface CanonicalRequirement {
   known: boolean;
 }
 
+const NON_SKILL_LABEL =
+  /^(?:\d{1,3} )?(?:remot[eo]|remote|home ?office|hibrid[oa]|hybrid|presencial|on ?site|anywhere|salari[oa]|salary|compensation|beneficios?|benefits?|ferias|vacation|vale refeicao|vale alimentacao|plano de saude|health insurance|stock options?|equity)(?: (?:work|job|model|policy|regime|position))?$/;
+
+export function isNonSkillLabel(raw: string): boolean {
+  return NON_SKILL_LABEL.test(buildKey(raw));
+}
+
 export function canonicalizeRequirement(raw: string): CanonicalRequirement | null {
   const key = buildKey(raw);
   if (key.length === 0) {
@@ -142,4 +152,34 @@ export function canonicalizeRequirement(raw: string): CanonicalRequirement | nul
 
 export function requirementCatalogKeys(): readonly string[] {
   return [...LOOKUP.keys()];
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const CATALOG_MATCHERS = CATALOG_INDEX.map(({ definition, keys }) => {
+  const alternatives = [...keys]
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegExp)
+    .join('|');
+  return {
+    definition,
+    regex: new RegExp(`(?<![a-z0-9])(?:${alternatives})(?![a-z0-9])`, 'g'),
+  };
+});
+
+export function findKnownRequirements(text: string): RequirementDefinition[] {
+  const haystack = buildKey(text);
+  if (haystack.length === 0) {
+    return [];
+  }
+  const found = new Map<string, RequirementDefinition>();
+  for (const matcher of CATALOG_MATCHERS) {
+    matcher.regex.lastIndex = 0;
+    if (matcher.regex.test(haystack) && !found.has(matcher.definition.canonical)) {
+      found.set(matcher.definition.canonical, matcher.definition);
+    }
+  }
+  return [...found.values()];
 }

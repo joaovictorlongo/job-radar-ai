@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "collect": "tsx src/collect.ts",
+    "extract": "tsx src/extract.ts",
     "seed:requirements": "tsx src/seed-requirements.ts"
   },
   "dependencies": {

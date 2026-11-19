@@ -16,7 +16,8 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:reset": "tsx scripts/db-reset.ts",
     "db:seed": "pnpm --filter @job-radar/worker seed:requirements",
-    "collect": "pnpm --filter @job-radar/worker collect"
+    "collect": "pnpm --filter @job-radar/worker collect",
+    "extract": "pnpm --filter @job-radar/worker extract"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",

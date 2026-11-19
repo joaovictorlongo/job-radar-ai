@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalizeRequirement } from './requirements.js';
+import { canonicalizeRequirement, findKnownRequirements, isNonSkillLabel } from './requirements.js';
 
 describe('canonicalizeRequirement', () => {
   it('normaliza grafias do mesmo requisito', () => {
@@ -26,5 +26,61 @@ describe('canonicalizeRequirement', () => {
 
   it('ignora entrada vazia', () => {
     expect(canonicalizeRequirement('   ')).toBeNull();
+  });
+});
+
+describe('findKnownRequirements', () => {
+  it('encontra skills citadas no trecho', () => {
+    const found = findKnownRequirements(
+      'Experience managing CI/CD pipelines and SQL databases with Git.',
+    ).map((item) => item.canonical);
+    expect(found).toEqual(expect.arrayContaining(['ci/cd', 'sql', 'git']));
+  });
+
+  it('não confunde substrings com requisitos', () => {
+    const found = findKnownRequirements('good communication and mysql administration').map(
+      (item) => item.canonical,
+    );
+    expect(found).not.toContain('go');
+    expect(found).toContain('mysql');
+    expect(found).toContain('communication');
+  });
+
+  it('resolve alias com versão', () => {
+    const found = findKnownRequirements('Strong Node.js and AWS Lambda experience').map(
+      (item) => item.canonical,
+    );
+    expect(found).toEqual(expect.arrayContaining(['node.js', 'aws']));
+  });
+
+  it('normaliza acentos do português', () => {
+    expect(canonicalizeRequirement('Comunicação')?.canonical).toBe('communication');
+    expect(canonicalizeRequirement('Português fluente')?.canonical).toBe('portuguese');
+    expect(canonicalizeRequirement('Espanhol')?.canonical).toBe('spanish');
+  });
+
+  it('reconhece idioma publicado como requisito', () => {
+    const found = findKnownRequirements('Portuguese - Fluent. English - Fluent.').map(
+      (item) => item.canonical,
+    );
+    expect(found).toEqual(expect.arrayContaining(['portuguese', 'english']));
+  });
+
+  it('separa modelo de trabalho e benefício de skill', () => {
+    for (const label of [
+      'Remote work',
+      '100% Remoto',
+      'Home Office',
+      'Híbrido',
+      'Presencial',
+      'Vale Refeição',
+      'Plano de Saúde',
+      'Salary',
+    ]) {
+      expect(isNonSkillLabel(label)).toBe(true);
+    }
+    for (const label of ['Node.js', 'Comunicação', 'AWS', 'Remote sensing']) {
+      expect(isNonSkillLabel(label)).toBe(false);
+    }
   });
 });
