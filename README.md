@@ -20,8 +20,12 @@ Status: block **B1 (ingestion and database)** implemented and validated locally.
 | Versioned prompt, strict JSON-Schema output, Zod validation, grounding | done |
 | Deterministic normalisation (language by body, `years_required` from requirement years) | done |
 | Extraction CLI with content cache and transactional persistence | done |
+| Annotation guide for gold labeling (`docs/guia-anotacao.md`) | done |
+| Evaluation harness (F1 micro/macro, Cohen's $\kappa$, hard gates, DB persistence) | done |
+| Evaluation CLI (`pnpm eval:seed`, `pnpm eval`) and versioned dataset | done |
 | CI: lint, typecheck, tests, migration smoke, salary-gate check | done |
-| Eval harness, matching, Next.js dashboard | not started |
+| Matching with pgvector, gap report, Next.js dashboard | not started |
+
 
 Observed in the local validation run (2026-11-19): 30 jobs stored — 20 from Programathor and 10 from Remote OK — with 30 distinct description hashes. These are sample counts, not performance claims.
 
@@ -128,14 +132,43 @@ flowchart LR
 
 `packages/shared/src/extraction/prompt.ts` holds the versioned prompt. Bumping `PROMPT_VERSION` invalidates the cache by design; the current version is `extract-v2`, which requires 1–4 word requirement labels and forbids inferring the work model from the title or the company.
 
+## Evaluation harness (B3)
+
+The evaluation harness measures whether the extraction pipeline meets the production criteria on real, hand-labeled data:
+
+- **Annotation guide:** [`docs/guia-anotacao.md`](docs/guia-anotacao.md) defines objective, reproducible criteria for `seniority`, `work_model`, `salary_published`, `years`, `stack_must` and `stack_nice`.
+- **Dataset:** versioned gold dataset in `data/gold/dataset-v1.json` with pass 1 (primary annotation) and pass 2 (blind re-annotation sample for inter-annotator agreement).
+- **Commands:**
+  ```bash
+  pnpm eval:seed   # loads data/gold/dataset-v1.json into the database 'labels' table
+  pnpm eval        # runs evaluation against jobs and job_requirements, persists eval_runs
+  ```
+
+### Real measured results (`eval_run` #1, 2026-11-19)
+
+Evaluated against `dataset-v1` (20 jobs, pass 1 + blind pass 2) under extractor `extract-v2` (`jobradar-qwen`):
+
+| Check | Gate type | Target | Actual | Status |
+|---|---|---|---|---|
+| Zero salary false positives | Hard gate | 0 | 0 | **PASS** |
+| Valid JSON against Zod schema | Hard gate | $\ge 0.98$ | 1.000 | **PASS** |
+| Literal grounding in description | Hard gate | $\ge 0.95$ | 1.000 | **PASS** |
+| Inter-annotator agreement (Cohen's $\kappa$) | Hard gate | $\ge 0.80$ | 1.000 | **PASS** |
+| Seniority accuracy | Quality target | $\ge 0.85$ | 1.000 (20/20) | **PASS** |
+| Work model accuracy | Quality target | $\ge 0.90$ | 1.000 (20/20) | **PASS** |
+| Years accuracy ($\pm 1$ year tol.) | Quality target | $\ge 0.85$ | 1.000 | **PASS** |
+| Stack must-have micro F1 | Quality target | $\ge 0.82$ | 0.636 (P: 0.489, R: 0.908) | **FAIL** |
+
+**Diagnosis:** Hard gates and single-label classifications passed 100%. Stack must-have recall is high (90.8%), but precision is 48.9% because the local model extracted descriptive phrases (e.g. "ciclo de vida do flutter", "experiencia em aplicativos complexos") beyond the catalog. In accordance with §5.4, the status is transparently reported as **REPROVADO** until prompt/extractor tuning.
+
 ## Decisions
 
 See [`docs/decisoes-tecnicas.md`](docs/decisoes-tecnicas.md) for the closed open questions (embedding dimension, salary invariant, dedupe, `scrappingjob` inventory, which layer writes derived columns).
 
 ## What is not verified yet
 
-- No LLM call has run: cost, latency and extraction quality are unmeasured.
-- No labelled dataset, no precision/recall/F1, no evaluation run.
+- Matching with pgvector and gap report against profile markdown (B4).
+- Next.js web dashboard with `/evals` page (B5).
 - Collection depends on Programathor markup; only the two saved fixtures cover it.
 - Remote OK terms require attribution and a link back when the API data is displayed.
 

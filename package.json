@@ -17,7 +17,9 @@
     "db:reset": "tsx scripts/db-reset.ts",
     "db:seed": "pnpm --filter @job-radar/worker seed:requirements",
     "collect": "pnpm --filter @job-radar/worker collect",
-    "extract": "pnpm --filter @job-radar/worker extract"
+    "extract": "pnpm --filter @job-radar/worker extract",
+    "eval": "pnpm --filter @job-radar/worker eval",
+    "eval:seed": "pnpm --filter @job-radar/worker seed:gold"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",

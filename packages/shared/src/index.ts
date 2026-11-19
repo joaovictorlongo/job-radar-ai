@@ -42,3 +42,33 @@ export {
   type GroundingResult,
   type GroundedRequirement,
 } from './extraction/grounding.js';
+export {
+  computeBinaryMetrics,
+  computeMultiLabelMetrics,
+  computeClassificationMetrics,
+  computeNumericToleranceMetrics,
+  computeSalaryMetrics,
+  computeCohensKappa,
+  type BinaryMetrics,
+  type MultiLabelMetrics,
+  type ClassificationMetrics,
+  type NumericToleranceMetrics,
+  type SalaryMetrics,
+  type CohenKappaResult,
+} from './eval/metrics.js';
+export {
+  evaluateGates,
+  type EvalGateCheck,
+  type EvalInputMetrics,
+  type GateEvaluationResult,
+} from './eval/gates.js';
+export {
+  goldDatasetSchema,
+  labeledJobSchema,
+  goldLabelFieldsSchema,
+  type GoldDataset,
+  type LabeledJob,
+  type GoldLabelFields,
+} from './eval/schema.js';
+
+

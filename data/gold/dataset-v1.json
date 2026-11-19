@@ -1,0 +1,687 @@
+{
+  "version": "dataset-v1",
+  "description": "Dataset ouro inicial estratificado de 20 vagas coletadas e rotuladas manualmente",
+  "createdAt": "2026-11-19T00:00:00.000Z",
+  "items": [
+    {
+      "jobId": "f96490b1-a954-401b-806e-bd89be1a1160",
+      "source": "programathor",
+      "sourceJobId": "33724",
+      "title": "Desenvolvedor(a) Mobile Flutter - Sênior",
+      "descriptionHash": "7b756cb33e02ac824d8149cbcb60e6097722eb763c6a769f12b1f726e2237333",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["dart", "flutter", "websockets", "communication"],
+        "stackNice": ["firebase"]
+      }
+    },
+    {
+      "jobId": "f96490b1-a954-401b-806e-bd89be1a1160",
+      "source": "programathor",
+      "sourceJobId": "33724",
+      "title": "Desenvolvedor(a) Mobile Flutter - Sênior",
+      "descriptionHash": "7b756cb33e02ac824d8149cbcb60e6097722eb763c6a769f12b1f726e2237333",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["dart", "flutter", "communication"],
+        "stackNice": ["firebase"]
+      }
+    },
+    {
+      "jobId": "1c706bf2-b021-4136-b3d8-83f76369fb8c",
+      "source": "programathor",
+      "sourceJobId": "33685",
+      "title": "Desenvolvedor Back-End Senior (AI Engineer)",
+      "descriptionHash": "d1035e1efdaea32586fb6a5498e4cf66c63b127f4e3a4e38bc95a473a373fe8e",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["python", "llm", "fastapi", "flask", "langchain", "langgraph", "rag", "pgvector", "git", "communication"],
+        "stackNice": ["gcp", "aws", "azure", "ci/cd", "llmops"]
+      }
+    },
+    {
+      "jobId": "1c706bf2-b021-4136-b3d8-83f76369fb8c",
+      "source": "programathor",
+      "sourceJobId": "33685",
+      "title": "Desenvolvedor Back-End Senior (AI Engineer)",
+      "descriptionHash": "d1035e1efdaea32586fb6a5498e4cf66c63b127f4e3a4e38bc95a473a373fe8e",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["python", "fastapi", "flask", "langchain", "rag", "pgvector"],
+        "stackNice": ["aws", "azure", "gcp"]
+      }
+    },
+    {
+      "jobId": "ba9836d1-8e7c-425d-8bad-faecbd377042",
+      "source": "programathor",
+      "sourceJobId": "33924",
+      "title": "Staff Software Engineer (Java)",
+      "descriptionHash": "6e772f5d1f53649935c9f4bd005b2596448a4edd614e5aa899e82e65fcf98403",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "lead",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 8,
+        "stackMust": ["java", "spring", "sql", "ci/cd", "portuguese", "english", "problem solving"],
+        "stackNice": ["docker", "aws"]
+      }
+    },
+    {
+      "jobId": "ba9836d1-8e7c-425d-8bad-faecbd377042",
+      "source": "programathor",
+      "sourceJobId": "33924",
+      "title": "Staff Software Engineer (Java)",
+      "descriptionHash": "6e772f5d1f53649935c9f4bd005b2596448a4edd614e5aa899e82e65fcf98403",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "lead",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 8,
+        "stackMust": ["java", "spring", "sql", "english"],
+        "stackNice": ["docker", "aws"]
+      }
+    },
+    {
+      "jobId": "83d0ca27-9d10-43f7-8f8d-9f2854444b6c",
+      "source": "programathor",
+      "sourceJobId": "33884",
+      "title": "Analista SAP B1 Pleno",
+      "descriptionHash": "4433f5219f7366e266fb8518c4bd55cf870e08ae7b2d7d4644f96f2ffead6ac1",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["sap business one", "sql"],
+        "stackNice": ["communication"]
+      }
+    },
+    {
+      "jobId": "83d0ca27-9d10-43f7-8f8d-9f2854444b6c",
+      "source": "programathor",
+      "sourceJobId": "33884",
+      "title": "Analista SAP B1 Pleno",
+      "descriptionHash": "4433f5219f7366e266fb8518c4bd55cf870e08ae7b2d7d4644f96f2ffead6ac1",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["sap business one", "sql"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "aac9e384-6ffe-4c61-9426-c8012fc4b70b",
+      "source": "programathor",
+      "sourceJobId": "33883",
+      "title": "Tech Lead RM TOTVS",
+      "descriptionHash": "15fbc6f712f8fa03225fed2e954aaec0e4f1d97ec06dc7404fd72186873cde97",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "lead",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#", "angular", "leadership"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "aac9e384-6ffe-4c61-9426-c8012fc4b70b",
+      "source": "programathor",
+      "sourceJobId": "33883",
+      "title": "Tech Lead RM TOTVS",
+      "descriptionHash": "15fbc6f712f8fa03225fed2e954aaec0e4f1d97ec06dc7404fd72186873cde97",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "lead",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#", "angular", "leadership"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "2e209879-0ad4-423a-82dd-e740f5d0c7e7",
+      "source": "programathor",
+      "sourceJobId": "33882",
+      "title": "Engenheiro(a) de Machine Learning Senior",
+      "descriptionHash": "6170b9532384a3ebec9e8522a6ff64ac3c90ab80d70e535236902fb6041f3690",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["python", "sql", "machine learning", "pytorch", "tensorflow", "airflow", "spark", "communication"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "2e209879-0ad4-423a-82dd-e740f5d0c7e7",
+      "source": "programathor",
+      "sourceJobId": "33882",
+      "title": "Engenheiro(a) de Machine Learning Senior",
+      "descriptionHash": "6170b9532384a3ebec9e8522a6ff64ac3c90ab80d70e535236902fb6041f3690",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["python", "sql", "machine learning", "pytorch", "tensorflow", "spark"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "6abd1ca3-7dfc-41a8-be80-b8a63f99ab3a",
+      "source": "programathor",
+      "sourceJobId": "33878",
+      "title": "Desenvolvedor(a) Senior FullStack React/ C# ( ASP.Net Core)",
+      "descriptionHash": "9f79c6bf38baf0a7c1e3caac63a17b5a1ee678fe4d89ad66fe00bdcc572ea257",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["react", "sql server", "c#", ".net"],
+        "stackNice": ["azure"]
+      }
+    },
+    {
+      "jobId": "6abd1ca3-7dfc-41a8-be80-b8a63f99ab3a",
+      "source": "programathor",
+      "sourceJobId": "33878",
+      "title": "Desenvolvedor(a) Senior FullStack React/ C# ( ASP.Net Core)",
+      "descriptionHash": "9f79c6bf38baf0a7c1e3caac63a17b5a1ee678fe4d89ad66fe00bdcc572ea257",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["react", "sql server", "c#"],
+        "stackNice": ["azure"]
+      }
+    },
+    {
+      "jobId": "3447a773-0fe1-4f77-9299-6d9a42f16cb9",
+      "source": "programathor",
+      "sourceJobId": "33876",
+      "title": "Desenvolvedor(a) Full Stack Sênior",
+      "descriptionHash": "7052451bb56711d5290383aa367faa4e7d4d680c7196d1f973fb7c19ac0b35e8",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["typescript", "javascript", "node.js", "mysql", "kafka", "rabbitmq", "redis"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "3447a773-0fe1-4f77-9299-6d9a42f16cb9",
+      "source": "programathor",
+      "sourceJobId": "33876",
+      "title": "Desenvolvedor(a) Full Stack Sênior",
+      "descriptionHash": "7052451bb56711d5290383aa367faa4e7d4d680c7196d1f973fb7c19ac0b35e8",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["typescript", "javascript", "node.js", "mysql", "redis"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "cd20d02e-cd2f-4b79-8a65-b0337cfc4aba",
+      "source": "programathor",
+      "sourceJobId": "33875",
+      "title": "Tech Lead Senior",
+      "descriptionHash": "5704ea8ca2b42d9b9acd20bc388527e816e41751df767da52f32c6fcb83caf0a",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "lead",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["java", "spring", "leadership", "microservices architecture"],
+        "stackNice": ["docker", "kubernetes"]
+      }
+    },
+    {
+      "jobId": "cd20d02e-cd2f-4b79-8a65-b0337cfc4aba",
+      "source": "programathor",
+      "sourceJobId": "33875",
+      "title": "Tech Lead Senior",
+      "descriptionHash": "5704ea8ca2b42d9b9acd20bc388527e816e41751df767da52f32c6fcb83caf0a",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "lead",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["java", "spring", "leadership"],
+        "stackNice": ["docker", "kubernetes"]
+      }
+    },
+    {
+      "jobId": "303eaec7-d917-45fa-9e9c-3689a852c1f8",
+      "source": "programathor",
+      "sourceJobId": "33869",
+      "title": "Desenvolvedor(a) Java Full Stack Pleno",
+      "descriptionHash": "3512a4f69e71fcd651b65dbeb9996c385fa9cdae58a47a1b42affdbaae446883",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["java", "spring", "react", "angular", "sql"],
+        "stackNice": ["docker"]
+      }
+    },
+    {
+      "jobId": "303eaec7-d917-45fa-9e9c-3689a852c1f8",
+      "source": "programathor",
+      "sourceJobId": "33869",
+      "title": "Desenvolvedor(a) Java Full Stack Pleno",
+      "descriptionHash": "3512a4f69e71fcd651b65dbeb9996c385fa9cdae58a47a1b42affdbaae446883",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["java", "spring", "react", "sql"],
+        "stackNice": ["docker"]
+      }
+    },
+    {
+      "jobId": "e8e2bc76-1ac5-49e1-878c-84c9b7e82f9c",
+      "source": "programathor",
+      "sourceJobId": "33867",
+      "title": "Desenvolvedor(a) Back-End Sênior PHP | 100% Remoto | São Paulo",
+      "descriptionHash": "1c05da1e4bafcef0ccd121e2456e2a1414ed30d91b0e6424c75478d38b3b4cb0",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["php", "javascript", "python", "c#", "java", "communication"],
+        "stackNice": ["mysql", "mongodb"]
+      }
+    },
+    {
+      "jobId": "e8e2bc76-1ac5-49e1-878c-84c9b7e82f9c",
+      "source": "programathor",
+      "sourceJobId": "33867",
+      "title": "Desenvolvedor(a) Back-End Sênior PHP | 100% Remoto | São Paulo",
+      "descriptionHash": "1c05da1e4bafcef0ccd121e2456e2a1414ed30d91b0e6424c75478d38b3b4cb0",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["php", "javascript", "python", "java"],
+        "stackNice": ["mysql"]
+      }
+    },
+    {
+      "jobId": "3ce163ba-94d8-458c-ae47-a467b41a307a",
+      "source": "programathor",
+      "sourceJobId": "33865",
+      "title": "Senior Swift & SwiftUI Developer",
+      "descriptionHash": "2b1b3047887738937a8300e4fa595d540aa9c8c3f0ed66be6b3987b5c6f833b7",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["swift", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "3ce163ba-94d8-458c-ae47-a467b41a307a",
+      "source": "programathor",
+      "sourceJobId": "33865",
+      "title": "Senior Swift & SwiftUI Developer",
+      "descriptionHash": "2b1b3047887738937a8300e4fa595d540aa9c8c3f0ed66be6b3987b5c6f833b7",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["swift", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "35b27bec-420b-4cb4-9bdd-28e9c9cbcbe4",
+      "source": "programathor",
+      "sourceJobId": "33864",
+      "title": "Senior Golang Developer",
+      "descriptionHash": "7189bf1e1470ebe54add7053126a12317ab0a9e632afe272e7d72965f72200a2",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["go", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "35b27bec-420b-4cb4-9bdd-28e9c9cbcbe4",
+      "source": "programathor",
+      "sourceJobId": "33864",
+      "title": "Senior Golang Developer",
+      "descriptionHash": "7189bf1e1470ebe54add7053126a12317ab0a9e632afe272e7d72965f72200a2",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["go", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "a4290226-93f5-4de8-a5d9-4f1d66e2d20f",
+      "source": "programathor",
+      "sourceJobId": "33861",
+      "title": "Senior React Full-stack Developer",
+      "descriptionHash": "2cc4911923844b9f9b9ef1ec3728391655d4593cebec0d8d35504f420c7f4f5a",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["react", "ruby", "aws", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "a4290226-93f5-4de8-a5d9-4f1d66e2d20f",
+      "source": "programathor",
+      "sourceJobId": "33861",
+      "title": "Senior React Full-stack Developer",
+      "descriptionHash": "2cc4911923844b9f9b9ef1ec3728391655d4593cebec0d8d35504f420c7f4f5a",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["react", "ruby", "aws", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "3946ce8b-218f-4891-bc84-5a98c213e484",
+      "source": "programathor",
+      "sourceJobId": "33860",
+      "title": "Desenvolvedor Full-Stack Estágio",
+      "descriptionHash": "a74adfe9db439145015d3b6c394a3a5e52aaeea2161bdd6fda754024a48ea3e6",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "intern",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["react", "javascript", "c#", "sql", ".net", "angular", "sql server", "mongodb", "communication"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "3946ce8b-218f-4891-bc84-5a98c213e484",
+      "source": "programathor",
+      "sourceJobId": "33860",
+      "title": "Desenvolvedor Full-Stack Estágio",
+      "descriptionHash": "a74adfe9db439145015d3b6c394a3a5e52aaeea2161bdd6fda754024a48ea3e6",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "intern",
+        "workModel": "onsite",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["react", "javascript", "c#", ".net", "sql"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "6ec598d8-3a55-418f-8db1-2f0684b7b701",
+      "source": "programathor",
+      "sourceJobId": "33854",
+      "title": "Desenvolvedor Full Stack Pleno",
+      "descriptionHash": "20a1b98977300377044f691265e0e06aa13cdaaf9adf2b21a54ae9b091f886ba",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#", "sql", ".net", "github"],
+        "stackNice": ["react", "angular", "ionic", "docker"]
+      }
+    },
+    {
+      "jobId": "6ec598d8-3a55-418f-8db1-2f0684b7b701",
+      "source": "programathor",
+      "sourceJobId": "33854",
+      "title": "Desenvolvedor Full Stack Pleno",
+      "descriptionHash": "20a1b98977300377044f691265e0e06aa13cdaaf9adf2b21a54ae9b091f886ba",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#", "sql", ".net"],
+        "stackNice": ["react", "docker"]
+      }
+    },
+    {
+      "jobId": "4988faca-7bb3-4eaa-a6d5-6492a412a172",
+      "source": "programathor",
+      "sourceJobId": "33853",
+      "title": "Game Developer (USD-based pay)",
+      "descriptionHash": "9576ef2208ff74a63c350a270e8d16cf4aab9a8ac70bf36655447c65f2418216",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "unknown",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#", "communication"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "4988faca-7bb3-4eaa-a6d5-6492a412a172",
+      "source": "programathor",
+      "sourceJobId": "33853",
+      "title": "Game Developer (USD-based pay)",
+      "descriptionHash": "9576ef2208ff74a63c350a270e8d16cf4aab9a8ac70bf36655447c65f2418216",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "unknown",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "28946e01-a101-4aff-8faf-6e3e4f40e9f4",
+      "source": "programathor",
+      "sourceJobId": "33749",
+      "title": "Full-stack Engineer Node.js + React.js + AWS (USD-based pay)",
+      "descriptionHash": "8d4af5de28db7981cfecff9883793ef63ca792bd1ab8724cc176f98f6b525b5e",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["react", "node.js", "postgresql", "aws", "communication", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "28946e01-a101-4aff-8faf-6e3e4f40e9f4",
+      "source": "programathor",
+      "sourceJobId": "33749",
+      "title": "Full-stack Engineer Node.js + React.js + AWS (USD-based pay)",
+      "descriptionHash": "8d4af5de28db7981cfecff9883793ef63ca792bd1ab8724cc176f98f6b525b5e",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "mid",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": 5,
+        "stackMust": ["react", "node.js", "postgresql", "aws", "english"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "042439f2-e9cc-4b85-9490-013239aa62e3",
+      "source": "programathor",
+      "sourceJobId": "33851",
+      "title": "Senior Mobile Developer (USD-based pay)",
+      "descriptionHash": "a536f7c0afc7620ded12eaf4394c4485bd7c556c5095df634449b1d49871b44c",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["typescript", "react", "javascript", "swift", "kotlin"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "042439f2-e9cc-4b85-9490-013239aa62e3",
+      "source": "programathor",
+      "sourceJobId": "33851",
+      "title": "Senior Mobile Developer (USD-based pay)",
+      "descriptionHash": "a536f7c0afc7620ded12eaf4394c4485bd7c556c5095df634449b1d49871b44c",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "senior",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["typescript", "react", "javascript", "swift", "kotlin"],
+        "stackNice": []
+      }
+    },
+    {
+      "jobId": "249fe1eb-057c-4868-9e9e-70647f51d350",
+      "source": "programathor",
+      "sourceJobId": "33855",
+      "title": "Developer Back-End (USD-based pay)",
+      "descriptionHash": "34dd3c11cc224b2638000dbe780e8aad6234e953668c89f1237afe83f2af85f6",
+      "annotator": "joao-longo",
+      "pass": 1,
+      "labels": {
+        "seniority": "unknown",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#", ".net", "mysql", "communication"],
+        "stackNice": ["gcp", "aws", "azure"]
+      }
+    },
+    {
+      "jobId": "249fe1eb-057c-4868-9e9e-70647f51d350",
+      "source": "programathor",
+      "sourceJobId": "33855",
+      "title": "Developer Back-End (USD-based pay)",
+      "descriptionHash": "34dd3c11cc224b2638000dbe780e8aad6234e953668c89f1237afe83f2af85f6",
+      "annotator": "re-annotator-blind",
+      "pass": 2,
+      "labels": {
+        "seniority": "unknown",
+        "workModel": "remote",
+        "salaryPublished": false,
+        "years": null,
+        "stackMust": ["c#", ".net", "mysql"],
+        "stackNice": ["aws", "azure"]
+      }
+    }
+  ]
+}
