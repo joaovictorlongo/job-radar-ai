@@ -26,8 +26,8 @@ Status: block **B1 (ingestion and database)** implemented and validated locally.
 | Profile markdown versioned in `profile/*.md` | done |
 | Embedding adapter (1536d) and pgvector profile chunk sync (`pnpm profile:sync`) | done |
 | Matching engine, competitor benchmark and market gap report (`pnpm match:report`) | done |
+| Next.js App Router web dashboard with jobs, detail, `/gaps` and `/evals` (B5) | done, built |
 | CI: lint, typecheck, tests, migration smoke, salary-gate check | done |
-| Next.js dashboard (B5) | not started |
 
 
 Observed in the local validation run (2026-11-19): 30 jobs stored — 20 from Programathor and 10 from Remote OK — with 30 distinct description hashes. These are sample counts, not performance claims.
@@ -180,13 +180,28 @@ The matching engine connects hand-curated candidate profile markdown documents w
   - Benchmark comparison between João, average Full Stack candidates and junior AI wrapper candidates.
   - Granular job ranking with cited profile excerpts and missing requirements.
 
+## Web Dashboard (B5)
+
+Next.js 15 (App Router) + Tailwind CSS web dashboard in `apps/web`:
+
+- **`/` (Jobs & Matching):** Filterable job list by seniority, work model and text search, displaying candidate fit scores, matched requirements, and gap tags.
+- **`/jobs/[id]` (Job Detail):** Full job view with verified salary grounding, required skills linked to cited excerpts in João's profile, and interview strategy.
+- **`/gaps` (Market Gap Intelligence):** 2x2 Competitiveness Matrix (Core Advantages vs Strategic Gaps vs AI Moats), market coverage stats, and candidate benchmark comparison table.
+- **`/evals` (AI Model Observability):** Real-time display of the latest `eval_run` stored in PostgreSQL, with approval gates, F1 micro/macro, Cohen's $\kappa$, latency and cost.
+
+```bash
+pnpm web:dev    # runs the Next.js dev server on http://localhost:3000
+pnpm web:build  # builds the optimized production application
+pnpm web:start  # starts the standalone production server
+```
+
 ## Decisions
 
 See [`docs/decisoes-tecnicas.md`](docs/decisoes-tecnicas.md) for the closed open questions (embedding dimension, salary invariant, dedupe, `scrappingjob` inventory, which layer writes derived columns).
 
 ## What is not verified yet
 
-- Next.js web dashboard with `/evals` and job list (B5).
+- Remote production deployment on Vercel / Render (B6).
 - Collection depends on Programathor markup; only the two saved fixtures cover it.
 - Remote OK terms require attribution and a link back when the API data is displayed.
 
