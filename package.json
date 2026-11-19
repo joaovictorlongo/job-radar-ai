@@ -1,0 +1,32 @@
+{
+  "name": "job-radar-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck && tsc --noEmit -p tsconfig.json",
+    "test": "pnpm -r test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:reset": "tsx scripts/db-reset.ts",
+    "db:seed": "pnpm --filter @job-radar/worker seed:requirements",
+    "collect": "pnpm --filter @job-radar/worker collect"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.0",
+    "@types/pg": "^8.15.6",
+    "eslint": "^9.38.0",
+    "pg": "^8.16.3",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0",
+    "vitest": "^3.2.4"
+  }
+}

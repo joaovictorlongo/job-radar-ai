@@ -1,0 +1,34 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: jobradar-db
+    environment:
+      POSTGRES_USER: jobradar
+      POSTGRES_PASSWORD: jobradar
+      POSTGRES_DB: jobradar
+    ports:
+      - "55432:5432"
+    volumes:
+      - jobradar-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobradar -d jobradar"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: jobradar-redis
+    ports:
+      - "56379:6379"
+    volumes:
+      - jobradar-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  jobradar-db:
+  jobradar-redis:

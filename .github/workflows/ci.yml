@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  migration:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: jobradar
+          POSTGRES_PASSWORD: jobradar
+          POSTGRES_DB: jobradar
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U jobradar -d jobradar"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://jobradar:jobradar@localhost:55432/jobradar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:migrate
+      - run: pnpm db:seed
+      - name: Salary gate rejects invented range
+        run: |
+          if psql "$DATABASE_URL" -c "insert into jobs (source, source_job_id, url, title, description, description_hash, salary_published) values ('ci','1','https://example.com','x','desc','hash',true)"; then
+            echo "check constraint should have rejected salary_published without values"
+            exit 1
+          fi
