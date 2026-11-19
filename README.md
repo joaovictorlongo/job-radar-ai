@@ -23,8 +23,11 @@ Status: block **B1 (ingestion and database)** implemented and validated locally.
 | Annotation guide for gold labeling (`docs/guia-anotacao.md`) | done |
 | Evaluation harness (F1 micro/macro, Cohen's $\kappa$, hard gates, DB persistence) | done |
 | Evaluation CLI (`pnpm eval:seed`, `pnpm eval`) and versioned dataset | done |
+| Profile markdown versioned in `profile/*.md` | done |
+| Embedding adapter (1536d) and pgvector profile chunk sync (`pnpm profile:sync`) | done |
+| Matching engine, competitor benchmark and market gap report (`pnpm match:report`) | done |
 | CI: lint, typecheck, tests, migration smoke, salary-gate check | done |
-| Matching with pgvector, gap report, Next.js dashboard | not started |
+| Next.js dashboard (B5) | not started |
 
 
 Observed in the local validation run (2026-11-19): 30 jobs stored — 20 from Programathor and 10 from Remote OK — with 30 distinct description hashes. These are sample counts, not performance claims.
@@ -161,14 +164,29 @@ Evaluated against `dataset-v1` (20 jobs, pass 1 + blind pass 2) under extractor 
 
 **Diagnosis:** Hard gates and single-label classifications passed 100%. Stack must-have recall is high (90.8%), but precision is 48.9% because the local model extracted descriptive phrases (e.g. "ciclo de vida do flutter", "experiencia em aplicativos complexos") beyond the catalog. In accordance with §5.4, the status is transparently reported as **REPROVADO** until prompt/extractor tuning.
 
+## Matching and Gap Analysis (B4)
+
+The matching engine connects hand-curated candidate profile markdown documents with market demand:
+
+- **Candidate profile:** versioned in [`profile/`](profile/) (`experiencia.md`, `competencias.md`, `projetos.md`).
+- **Chunking & Embeddings:** chunks stored in PostgreSQL with 1536-dimensional vectors via pgvector HNSW indexing.
+- **Commands:**
+  ```bash
+  pnpm profile:sync   # chunks profile/*.md and generates embeddings in profile_chunks
+  pnpm match:report   # evaluates fit, benchmarks against market competitors, and writes gap report
+  ```
+- **Generated report:** [`reports/relatorio-gaps-e-competitividade.md`](reports/relatorio-gaps-e-competitividade.md) with:
+  - 2x2 Competitiveness Matrix (Core Advantages vs Strategic Gaps vs AI Moats).
+  - Benchmark comparison between João, average Full Stack candidates and junior AI wrapper candidates.
+  - Granular job ranking with cited profile excerpts and missing requirements.
+
 ## Decisions
 
 See [`docs/decisoes-tecnicas.md`](docs/decisoes-tecnicas.md) for the closed open questions (embedding dimension, salary invariant, dedupe, `scrappingjob` inventory, which layer writes derived columns).
 
 ## What is not verified yet
 
-- Matching with pgvector and gap report against profile markdown (B4).
-- Next.js web dashboard with `/evals` page (B5).
+- Next.js web dashboard with `/evals` and job list (B5).
 - Collection depends on Programathor markup; only the two saved fixtures cover it.
 - Remote OK terms require attribution and a link back when the API data is displayed.
 

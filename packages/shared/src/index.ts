@@ -70,5 +70,25 @@ export {
   type LabeledJob,
   type GoldLabelFields,
 } from './eval/schema.js';
+export {
+  chunkMarkdown,
+  type ProfileChunk,
+} from './profile/chunker.js';
+export {
+  computeJobMatchScore,
+  type RequirementMatch,
+  type MatchScoreResult,
+} from './matching/scoring.js';
+export {
+  analyzeMarketGaps,
+  type MarketSkillDemand,
+  type MarketGapAnalysisResult,
+  type UserSkillEvidenceMap,
+  type JobWithExtractedRequirements,
+  type SkillUserStatus,
+  type MarketImportance,
+  type CompetitiveQuadrant,
+} from './matching/gap-analysis.js';
+
 
 

@@ -10,6 +10,8 @@
     "collect": "tsx src/collect.ts",
     "extract": "tsx src/extract.ts",
     "eval": "tsx src/eval.ts",
+    "profile:sync": "tsx src/profile-sync.ts",
+    "match:report": "tsx src/match-report.ts",
     "seed:gold": "tsx src/seed-gold.ts",
     "seed:requirements": "tsx src/seed-requirements.ts"
   },
