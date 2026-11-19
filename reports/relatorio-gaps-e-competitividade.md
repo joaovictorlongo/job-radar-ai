@@ -1,5 +1,5 @@
 # Relatório de Inteligência de Mercado, Matching e Análise de Gaps
-*Gerado em: 19/11/2026, 11:51:21 | Base: 20 vagas analisadas*
+*Gerado em: 19/11/2026, 12:33:29 | Base: 20 vagas analisadas*
 
 ---
 

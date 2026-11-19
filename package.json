@@ -24,7 +24,8 @@
     "match:report": "pnpm --filter @job-radar/worker match:report",
     "web:dev": "pnpm --filter @job-radar/web dev",
     "web:build": "pnpm --filter @job-radar/web build",
-    "web:start": "pnpm --filter @job-radar/web start"
+    "web:start": "pnpm --filter @job-radar/web start",
+    "demo": "tsx scripts/demo.ts"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",

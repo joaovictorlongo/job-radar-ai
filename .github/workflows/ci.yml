@@ -21,6 +21,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm build
 
   migration:
     runs-on: ubuntu-latest
@@ -52,6 +53,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:migrate
       - run: pnpm db:seed
+      - run: pnpm profile:sync
+      - run: pnpm eval:seed
       - name: Salary gate rejects invented range
         run: |
           if psql "$DATABASE_URL" -c "insert into jobs (source, source_job_id, url, title, description, description_hash, salary_published) values ('ci','1','https://example.com','x','desc','hash',true)"; then

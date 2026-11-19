@@ -2,7 +2,7 @@
 
 Weekly job triage for one senior engineer: collect public job posts, extract structured requirements with an LLM, rank them against a versioned profile, and report the gaps — with every number backed by a recorded evaluation run.
 
-Status: block **B1 (ingestion and database)** implemented and validated locally. LLM extraction (B2), labelling (B3), matching (B4), dashboard (B5) and publication hardening (B6) are not built yet.
+Status: all blocks **B1 (ingestion & database)**, **B2 (LLM extraction & grounding)**, **B3 (gold labeling & eval harness)**, **B4 (pgvector matching & gap analysis)**, **B5 (Next.js dashboard)**, and **B6 (CI & hardening)** implemented and validated locally. Every measured metric is recorded in PostgreSQL.
 
 ## What exists today
 
