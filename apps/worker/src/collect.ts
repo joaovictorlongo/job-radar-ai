@@ -16,7 +16,7 @@ async function main(): Promise<void> {
 
   const sourceName = values.source;
   if (sourceName === undefined) {
-    throw new Error('informe --source (programathor | remoteok)');
+    throw new Error('informe --source (programathor | remoteok | github)');
   }
   const limit = Number.parseInt(values.limit ?? '20', 10);
   if (!Number.isFinite(limit) || limit <= 0) {

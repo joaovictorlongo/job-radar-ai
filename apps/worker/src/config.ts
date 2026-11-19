@@ -44,6 +44,7 @@ function readApiKey(): string | null {
 }
 
 export interface LlmConfig {
+  provider: 'openai-compatible' | 'opencode-cli';
   baseUrl: string;
   model: string;
   apiKey: string | null;
@@ -65,6 +66,14 @@ export interface WorkerConfig {
   llm: LlmConfig;
 }
 
+function readProvider(): LlmConfig['provider'] {
+  const raw = process.env.LLM_PROVIDER ?? 'openai-compatible';
+  if (raw === 'openai-compatible' || raw === 'opencode-cli') {
+    return raw;
+  }
+  throw new Error('LLM_PROVIDER precisa ser openai-compatible ou opencode-cli');
+}
+
 function readStructuredMode(): LlmConfig['structuredMode'] {
   const raw = process.env.LLM_STRUCTURED_MODE ?? 'json_schema';
   if (raw === 'json_schema' || raw === 'json_object' || raw === 'none') {
@@ -82,6 +91,7 @@ export function loadConfig(): WorkerConfig {
     requestIntervalMs: readInt('COLLECTOR_REQUEST_INTERVAL_MS', 1000),
     maxRetries: readInt('COLLECTOR_MAX_RETRIES', 3),
     llm: {
+      provider: readProvider(),
       baseUrl: process.env.LLM_BASE_URL ?? 'https://api.openai.com/v1',
       model: process.env.LLM_MODEL ?? 'gpt-4o-mini',
       apiKey: readApiKey(),

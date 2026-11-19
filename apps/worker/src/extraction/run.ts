@@ -74,6 +74,17 @@ function sleep(ms: number): Promise<void> {
 }
 
 async function loadJobs(pool: Pool, options: RunExtractionOptions, version: string): Promise<JobRow[]> {
+  if (options.source === 'all') {
+    const result = await pool.query<JobRow>(
+      `select id, title, company, location_raw, description, description_hash
+       from jobs
+       where ($2 = true or extractor_version is null or extractor_version <> $1)
+       order by posted_at desc nulls last, collected_at desc
+       limit $3`,
+      [version, options.force, options.limit],
+    );
+    return result.rows;
+  }
   const result = await pool.query<JobRow>(
     `select id, title, company, location_raw, description, description_hash
      from jobs

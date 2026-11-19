@@ -52,7 +52,7 @@ export async function fetchJobsList(filters?: {
   search?: string;
 }): Promise<JobListItem[]> {
   const pool = getDbPool();
-  const conditions: string[] = ["j.extractor_version = 'extract-v2'"];
+  const conditions: string[] = ['j.extractor_version is not null'];
   const params: unknown[] = [];
 
   if (filters?.seniority && filters.seniority !== 'all') {

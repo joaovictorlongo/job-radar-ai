@@ -59,23 +59,27 @@ function normalizeTitle(title: string): string {
 }
 
 const OUT_OF_SCOPE_TITLE_PATTERNS: ReadonlyArray<{ pattern: RegExp; reason: string }> = [
-  { pattern: /\b(?:estagio|estagiari[oa]|intern|internship)\b/, reason: 'Vaga de estágio (fora da senioridade alvo)' },
+  { pattern: /\b(?:estagio|estagiari[oa]|intern|internship|early career|junior|jr\.?)\b/, reason: 'Vaga de estágio/júnior (fora da senioridade alvo)' },
   { pattern: /\b(?:sap\b|totvs|protheus|abap)\b/, reason: 'Ecossistema ERP proprietário (SAP/TOTVS)' },
   { pattern: /\b(?:php|laravel|wordpress)\b/, reason: 'Stack primária PHP' },
   { pattern: /\b(?:java\b|spring)\b/, reason: 'Stack primária Java' },
   { pattern: /\b(?:c#|csharp|asp\.?net|\.net|dotnet)\b/, reason: 'Stack primária C# / .NET' },
-  { pattern: /\b(?:swift|swiftui|ios\b|android\b|flutter|mobile)\b/, reason: 'Foco exclusivo em Mobile nativo/Flutter' },
+  { pattern: /\b(?:rust)\b/, reason: 'Stack primária Rust' },
+  { pattern: /\b(?:swift|swiftui|ios\b|android\b|flutter|react native|mobile)\b/, reason: 'Foco exclusivo em Mobile nativo/Flutter/RN' },
   { pattern: /\b(?:game developer|unity|unreal)\b/, reason: 'Desenvolvimento de games' },
   { pattern: /\b(?:golang|go developer)\b/, reason: 'Stack primária Go' },
   {
-    pattern: /\b(?:patient care|account manager|partnerships|bd lead|operations coach|question reviewers)\b/,
+    pattern:
+      /\b(?:patient care|account manager|account executive|partnerships|bd lead|business development|operations coach|operations manager|question reviewers|accountant|legal engineering counsel|product manager|content reviewer|video annotation|hil support|compilers)\b/,
     reason: 'Vaga não técnica / fora de engenharia de software',
   },
 ];
 
-const AI_TITLE_PATTERN = /\b(?:ai engineer|machine learning|engenheir[oa] de ia|inteligencia artificial|llm|ml engineer|ai tooling)\b/;
+const AI_TITLE_PATTERN =
+  /\b(?:ai engineer|agentic ai|machine learning|engenheir[oa] de ia|inteligencia artificial|llm|ml engineer|ai ml|ml inference|ai tooling|ai agents?)\b/;
 const LEAD_TITLE_PATTERN = /\b(?:tech lead|staff|principal|engineering manager)\b/;
-const FULLSTACK_TITLE_PATTERN = /\b(?:full[\s-]?stack|react|node\.?js|typescript|angular|next\.?js|frontend|front[\s-]?end)\b/;
+const FULLSTACK_TITLE_PATTERN =
+  /\b(?:full[\s-]?stack|product engineer|react|node\.?js|typescript|angular|next\.?js|frontend|front[\s-]?end)\b/;
 
 export function classifyJobTrack(input: JobTrackInput): JobTrackClassification {
   const title = normalizeTitle(input.title);
@@ -126,7 +130,11 @@ export function classifyJobTrack(input: JobTrackInput): JobTrackClassification {
   }
 
   if (
-    (mustSkills.has('java') || mustSkills.has('php') || mustSkills.has('swift') || mustSkills.has('flutter')) &&
+    (mustSkills.has('java') ||
+      mustSkills.has('php') ||
+      mustSkills.has('swift') ||
+      mustSkills.has('flutter') ||
+      mustSkills.has('rust')) &&
     !mustSkills.has('node.js') &&
     !mustSkills.has('typescript') &&
     !mustSkills.has('react')
@@ -136,6 +144,21 @@ export function classifyJobTrack(input: JobTrackInput): JobTrackClassification {
       tracks: ['out_of_scope'],
       inTargetScope: false,
       reason: 'Stack obrigatória fora do ecossistema JS/TS e IA',
+    };
+  }
+
+  // Vaga "Vue" exclusiva sem React/Angular/Node/IA fica fora de escopo
+  if (
+    /\bvue\b/.test(title) &&
+    !mustSkills.has('node.js') &&
+    !mustSkills.has('react') &&
+    !mustSkills.has('angular')
+  ) {
+    return {
+      primaryTrack: 'out_of_scope',
+      tracks: ['out_of_scope'],
+      inTargetScope: false,
+      reason: 'Foco exclusivo em Vue.js',
     };
   }
 

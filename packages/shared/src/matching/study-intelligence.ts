@@ -251,6 +251,21 @@ const STUDY_PLAYBOOK: Readonly<Record<string, SkillStudyPlaybook>> = {
       'Consolidar fundamentos do Bacharelado em IA (estatística, validação cruzada, métricas de classificação, scikit-learn) em notebooks reproduzíveis com testes.',
     why: 'Reforça credibilidade técnica nas fronteiras entre AI Engineering e ML aplicado.',
   },
+  mcp: {
+    action:
+      'Construir um servidor MCP (Model Context Protocol) em TypeScript strict expondo consultas do Job Radar AI (vagas, gaps e evals) para clientes de agentes.',
+    why: 'Padrão aberto de integração entre LLMs e ferramentas/dados que cresceu fortemente nas vagas de AI Engineer.',
+  },
+  'system design': {
+    action:
+      'Documentar ADRs de alta escala (caching multi-camada, filas idempotentes, sharding/particionamento Postgres, rate limiting distribuído) no portfólio.',
+    why: 'Principal critério de aprovação em entrevistas técnicas de nível Sênior e Tech Lead.',
+  },
+  ddd: {
+    action:
+      'Aplicar agregados, bounded contexts e repositórios puros em um módulo de domínio NestJS com testes desacoplados de banco.',
+    why: 'Frequente em vagas Sênior/Lead de sistemas corporativos complexos.',
+  },
 };
 
 function defaultPlaybook(canonical: string, cluster: SkillCluster): SkillStudyPlaybook {

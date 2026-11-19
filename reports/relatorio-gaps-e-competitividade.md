@@ -1,5 +1,5 @@
 # Relatório de Inteligência de Estudo, Gaps e Competitividade
-*Gerado em: 19/11/2026, 14:29:19 | Trilha: Todas as Trilhas-Alvo | Base ativa: 6/20 vagas (14 fora de escopo separadas)*
+*Gerado em: 19/11/2026, 20:17:18 | Trilha: Todas as Trilhas-Alvo | Base ativa: 15/53 vagas (38 fora de escopo separadas)*
 
 ---
 
@@ -7,12 +7,12 @@
 
 | Métrica | Valor Medido | Contexto |
 |---|---|---|
-| **Vagas Analisadas na Trilha** | 6 | Excluídas 14 vagas fora de escopo (C#, Java, PHP, SAP, Estágio) |
-| **Rótulos Genéricos Filtrados** | 3 | Frases de ruído removidas antes do cálculo |
-| **Fit Médio do João na Trilha** | **55%** | 1 Alto Fit (≥75%), 3 Médio Fit, 2 Baixo Fit |
-| **Cobertura Must-Have (Produção Sênior)** | **45.3%** | 54.7% incluindo conhecimento parcial |
-| **Gaps de Profundidade (Quick Wins)** | 3 | Skills com prática/estudo que precisam de evidência de produção |
-| **Gaps Técnicos Reais** | 22 | Skills exigidas na trilha sem evidência no perfil atual |
+| **Vagas Analisadas na Trilha** | 15 | Excluídas 38 vagas fora de escopo (C#, Java, PHP, SAP, Estágio) |
+| **Rótulos Genéricos Filtrados** | 62 | Frases de ruído removidas antes do cálculo |
+| **Fit Médio do João na Trilha** | **62.8%** | 5 Alto Fit (≥75%), 6 Médio Fit, 4 Baixo Fit |
+| **Cobertura Must-Have (Produção Sênior)** | **46.6%** | 58.6% incluindo conhecimento parcial |
+| **Gaps de Profundidade (Quick Wins)** | 5 | Skills com prática/estudo que precisam de evidência de produção |
+| **Gaps Técnicos Reais** | 30 | Skills exigidas na trilha sem evidência no perfil atual |
 
 ---
 
@@ -20,12 +20,12 @@
 
 | Cluster | Skills em Gap | Presença na Trilha | Ganho Médio na Trilha | Vagas → Alto Fit | Próximo Passo |
 |---|---|---|---|---|---|
-| **Dados & ML** | machine learning, airflow, dbt, estatistica, pytorch, spark, tensorflow | 16.7% (1 vagas) | **+8.7 pts** | +0 | Consolidar fundamentos do Bacharelado em IA (estatística, validação cruzada, métricas de classificação, scikit-learn) em notebooks reproduzíveis com testes. |
-| **Observabilidade & Monitoramento** | observabilidade | 66.7% (4 vagas) | **+5.9 pts** | +0 | Instrumentar o worker e o dashboard do Job Radar AI com OpenTelemetry (traces distribuídos, métricas Prometheus/Grafana e logs estruturados JSON com Pino). |
-| **Cloud & Infraestrutura** | kubernetes, aws serverless, azure, gcp | 66.7% (4 vagas) | **+5.4 pts** | +0 | Empacotar web + worker do Job Radar AI com manifests/Helm (probes de health, HPA, ConfigMaps/Secrets, CronJob de coleta) em cluster local (k3d/kind). |
-| **IA, LLMs & Agentes** | llmops, agentes de ia, langchain, langgraph | 50% (3 vagas) | **+5 pts** | +0 | Adicionar observabilidade de LLM (Langfuse ou OpenTelemetry GenAI) rastreando prompts versionados, custo por tenant, latência p95 e regressão de evals no CI. |
-| **Mensageria & Eventos** | kafka, rabbitmq | 50% (3 vagas) | **+3.9 pts** | +0 | Construir POC de arquitetura event-driven em NestJS + Kafka (consumer groups, idempotência, DLQ, outbox pattern) comparando com BullMQ/Redis. |
-| **Frontend & Web** | react | 33.3% (2 vagas) | **+2.8 pts** | +1 | Aprofundar React 19 (Server Components, hooks avançados, TanStack Query, performance/profiling e testes com Testing Library) usando este dashboard como vitrine. |
+| **IA, LLMs & Agentes** | agentes de ia, mcp, langchain, langgraph, llmops | 46.7% (7 vagas) | **+7.1 pts** | +1 | Documentar arquitetura multi-agente com tool calling, guardrails determinísticos, limites de custo/iteracão e avaliação ponta a ponta. |
+| **Dados & ML** | machine learning, data pipelines, airflow, dbt, estatistica, pytorch, spark, tensorflow | 20% (3 vagas) | **+6.2 pts** | +1 | Consolidar fundamentos do Bacharelado em IA (estatística, validação cruzada, métricas de classificação, scikit-learn) em notebooks reproduzíveis com testes. |
+| **Cloud & Infraestrutura** | kubernetes, azure, gcp, aws serverless, gitlab ci | 46.7% (7 vagas) | **+3.9 pts** | +0 | Empacotar web + worker do Job Radar AI com manifests/Helm (probes de health, HPA, ConfigMaps/Secrets, CronJob de coleta) em cluster local (k3d/kind). |
+| **Backend & Arquitetura** | system design, fastapi, flask, ddd | 33.3% (5 vagas) | **+2.9 pts** | +0 | Documentar ADRs de alta escala (caching multi-camada, filas idempotentes, sharding/particionamento Postgres, rate limiting distribuído) no portfólio. |
+| **Observabilidade & Monitoramento** | observabilidade | 33.3% (5 vagas) | **+2.7 pts** | +0 | Instrumentar o worker e o dashboard do Job Radar AI com OpenTelemetry (traces distribuídos, métricas Prometheus/Grafana e logs estruturados JSON com Pino). |
+| **Linguagens & Runtimes** | python, go | 46.7% (7 vagas) | **+2.6 pts** | +0 | Migrar seu Python de scripts para nível de produção: tipagem estrita (mypy/pyright), Pydantic v2, async/await, FastAPI e pytest. |
 
 ---
 
@@ -33,18 +33,18 @@
 
 | # | Skill | Horizonte | Nível Atual | Demanda | Ganho / Vaga Afetada | ROI | Ação Recomendada |
 |---|---|---|---|---|---|---|---|
-| 1 | **observabilidade** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 66.7% (4x, 2 must) | +8.8 pts | **76** | Instrumentar o worker e o dashboard do Job Radar AI com OpenTelemetry (traces distribuídos, métricas Prometheus/Grafana e logs estruturados JSON com Pino). |
-| 2 | **react** | Quick Win (Já tem base) | Prática / Portfólio | 33.3% (2x, 2 must) | +8.4 pts | **65** | Aprofundar React 19 (Server Components, hooks avançados, TanStack Query, performance/profiling e testes com Testing Library) usando este dashboard como vitrine. |
-| 3 | **kafka** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 50% (3x, 2 must) | +4.9 pts | **55** | Construir POC de arquitetura event-driven em NestJS + Kafka (consumer groups, idempotência, DLQ, outbox pattern) comparando com BullMQ/Redis. |
-| 4 | **python** | Quick Win (Já tem base) | Prática / Portfólio | 33.3% (2x, 2 must) | +3.3 pts | **51** | Migrar seu Python de scripts para nível de produção: tipagem estrita (mypy/pyright), Pydantic v2, async/await, FastAPI e pytest. |
-| 5 | **mongodb** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 33.3% (2x, 2 must) | +6 pts | **44** | Dominar modelagem orientada a documentos, aggregation pipelines, índices compostos e trade-offs de consistência vs PostgreSQL JSONB. |
-| 6 | **playwright** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 33.3% (2x, 2 must) | +6 pts | **44** | Adicionar suíte E2E com Playwright cobrindo `/`, `/gaps`, `/evals` e `/jobs/[id]` rodando no GitHub Actions do Job Radar AI. |
-| 7 | **kubernetes** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 33.3% (2x, 1 must) | +7.3 pts | **40** | Empacotar web + worker do Job Radar AI com manifests/Helm (probes de health, HPA, ConfigMaps/Secrets, CronJob de coleta) em cluster local (k3d/kind). |
-| 8 | **llmops** | Aposta AI Engineer | Sem Evidência (Gap) | 33.3% (2x, 1 must) | +5.2 pts | **37** | Adicionar observabilidade de LLM (Langfuse ou OpenTelemetry GenAI) rastreando prompts versionados, custo por tenant, latência p95 e regressão de evals no CI. |
-| 9 | **rabbitmq** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 33.3% (2x, 1 must) | +4.5 pts | **36** | Implementar filas com exchanges/routing keys, dead-letter queues e retry com backoff em NestJS + RabbitMQ. |
-| 10 | **machine learning** | Aposta AI Engineer | Em Estudo | 16.7% (1x, 1 must) | +5.8 pts | **31** | Consolidar fundamentos do Bacharelado em IA (estatística, validação cruzada, métricas de classificação, scikit-learn) em notebooks reproduzíveis com testes. |
-| 11 | **airflow** | Aposta AI Engineer | Sem Evidência (Gap) | 16.7% (1x, 1 must) | +7.7 pts | **27** | Estudar os fundamentos práticos de airflow e incluir uma prova de conceito testada no portfólio ligada à sua stack principal. |
-| 12 | **dbt** | Aposta AI Engineer | Sem Evidência (Gap) | 16.7% (1x, 1 must) | +7.7 pts | **27** | Estudar os fundamentos práticos de dbt e incluir uma prova de conceito testada no portfólio ligada à sua stack principal. |
+| 1 | **python** | Quick Win (Já tem base) | Prática / Portfólio | 40% (6x, 6 must) | +4 pts | **59** | Migrar seu Python de scripts para nível de produção: tipagem estrita (mypy/pyright), Pydantic v2, async/await, FastAPI e pytest. |
+| 2 | **react** | Quick Win (Já tem base) | Prática / Portfólio | 33.3% (5x, 4 must) | +4.7 pts | **58** | Aprofundar React 19 (Server Components, hooks avançados, TanStack Query, performance/profiling e testes com Testing Library) usando este dashboard como vitrine. |
+| 3 | **agentes de ia** | Aposta AI Engineer | Sem Evidência (Gap) | 33.3% (5x, 4 must) | +8.1 pts | **44** | Documentar arquitetura multi-agente com tool calling, guardrails determinísticos, limites de custo/iteracão e avaliação ponta a ponta. |
+| 4 | **observabilidade** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 33.3% (5x, 3 must) | +8 pts | **42** | Instrumentar o worker e o dashboard do Job Radar AI com OpenTelemetry (traces distribuídos, métricas Prometheus/Grafana e logs estruturados JSON com Pino). |
+| 5 | **machine learning** | Aposta AI Engineer | Em Estudo | 13.3% (2x, 2 must) | +9.2 pts | **36** | Consolidar fundamentos do Bacharelado em IA (estatística, validação cruzada, métricas de classificação, scikit-learn) em notebooks reproduzíveis com testes. |
+| 6 | **kafka** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 26.7% (4x, 3 must) | +5.2 pts | **34** | Construir POC de arquitetura event-driven em NestJS + Kafka (consumer groups, idempotência, DLQ, outbox pattern) comparando com BullMQ/Redis. |
+| 7 | **system design** | Quick Win (Já tem base) | Prática / Portfólio | 13.3% (2x, 2 must) | +5.5 pts | **31** | Documentar ADRs de alta escala (caching multi-camada, filas idempotentes, sharding/particionamento Postgres, rate limiting distribuído) no portfólio. |
+| 8 | **mcp** | Aposta AI Engineer | Sem Evidência (Gap) | 20% (3x, 3 must) | +7.4 pts | **30** | Construir um servidor MCP (Model Context Protocol) em TypeScript strict expondo consultas do Job Radar AI (vagas, gaps e evals) para clientes de agentes. |
+| 9 | **mongodb** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 20% (3x, 3 must) | +5.5 pts | **29** | Dominar modelagem orientada a documentos, aggregation pipelines, índices compostos e trade-offs de consistência vs PostgreSQL JSONB. |
+| 10 | **kubernetes** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 20% (3x, 2 must) | +6.9 pts | **28** | Empacotar web + worker do Job Radar AI com manifests/Helm (probes de health, HPA, ConfigMaps/Secrets, CronJob de coleta) em cluster local (k3d/kind). |
+| 11 | **fastapi** | Alto ROI (Curto/Médio Prazo) | Sem Evidência (Gap) | 20% (3x, 2 must) | +5.2 pts | **26** | Criar microserviço Python/FastAPI com Pydantic v2, streaming SSE de LLM e contrato OpenAPI integrado ao Job Radar AI. |
+| 12 | **next.js** | Quick Win (Já tem base) | Prática / Portfólio | 13.3% (2x, 0 must) | +4.7 pts | **26** | Evoluir o dashboard do Job Radar AI com Server Actions, streaming SSR, caching granular e testes E2E em produção na Vercel. |
 
 ---
 
@@ -54,17 +54,26 @@
 
 | Arquétipo Concorrente | Fit João | Fit Concorrente | Delta | Onde o Concorrente Te Supera | Onde Você Supera |
 |---|---|---|---|---|---|
-| **Candidato Médio Full Stack TS** | **55%** | 40.7% | **+14.3 pts** | mongodb (2x), playwright (2x), react (2x) | aws (5x), docker (2x), mysql (2x), python (2x), redis (2x) |
-| **Candidato AI Engineer (Python)** | **55%** | 41% | **+14 pts** | observabilidade (4x), python (2x), llmops (2x), agentes de ia (1x), estatistica (1x) | aws (5x), node.js (3x), docker (2x), mysql (2x), react (2x) |
-| **Candidato Sênior Backend & Cloud** | **55%** | 62% | **-7 pts** | observabilidade (4x), kafka (3x), mongodb (2x), kubernetes (2x), rabbitmq (2x) | python (2x), react (2x), llm (1x), machine learning (1x), pgvector (1x) |
+| **Candidato Médio Full Stack TS** | **62.8%** | 33.3% | **+29.5 pts** | react (5x), mongodb (3x), playwright (2x), next.js (2x) | llm (9x), aws (8x), python (6x), evals (5x), postgresql (4x) |
+| **Candidato AI Engineer (Python)** | **62.8%** | 47.8% | **+15 pts** | python (6x), agentes de ia (5x), observabilidade (5x), fastapi (3x), flask (2x) | aws (8x), typescript (6x), evals (5x), react (5x), node.js (4x) |
+| **Candidato Sênior Backend & Cloud** | **62.8%** | 45.6% | **+17.2 pts** | observabilidade (5x), kafka (4x), mongodb (3x), kubernetes (3x), rabbitmq (2x) | llm (9x), python (6x), evals (5x), react (5x), machine learning (2x) |
 
 ---
 
 ## 5. Vagas Avaliadas na Trilha-Alvo
 
+- **[🟢 ALTO FIT 94.4%]** [[Remoto] Product Engineer na JotPsych](https://github.com/frontendbr/vagas/issues/8574) — *Full Stack TS / Node / React* | Must-Haves: 2 produção, 0 parcial, 0 gap (total 2)
+- **[🟢 ALTO FIT 87.5%]** [[Remote] Product Engineer na JotPsych](https://github.com/backend-br/vagas/issues/12495) — *Full Stack TS / Node / React* | Must-Haves: 2 produção, 0 parcial, 0 gap (total 2)
 - **[🟢 ALTO FIT 81.9%]** [Full-stack Engineer Node.js + React.js + AWS (USD-based pay)](https://programathor.com.br/jobs/33749-full-stack-engineer-node-js-react-js-aws-usd-based-pay) — *Full Stack TS / Node / React* | Must-Haves: 6 produção, 1 parcial, 1 gap (total 8)
+- **[🟢 ALTO FIT 81.2%]** [[Híbrido] Sr Software Engineer - Stealth](https://github.com/backend-br/vagas/issues/12484) — *Full Stack TS / Node / React* | Must-Haves: 4 produção, 1 parcial, 0 gap (total 5)
+- **[🟢 ALTO FIT 75%]** [Software Engineer AI Tooling](https://remoteok.com/remote-jobs/remote-software-engineer-ai-tooling-supabase-1137793) — *AI Engineer & LLMs* | Must-Haves: 6 produção, 0 parcial, 3 gap (total 9)
 - **[🟡 MÉDIO FIT 63.8%]** [Senior React Full-stack Developer](https://programathor.com.br/jobs/33861-senior-react-full-stack-developer) — *Full Stack TS / Node / React* | Must-Haves: 2 produção, 1 parcial, 1 gap (total 4)
+- **[🟡 MÉDIO FIT 63.3%]** [Research Engineer Privacy and Anonymization](https://remoteok.com/remote-jobs/remote-research-engineer-privacy-and-anonymization-pragmatike-1137792) — *AI Engineer & LLMs* | Must-Haves: 3 produção, 2 parcial, 1 gap (total 6)
+- **[🟡 MÉDIO FIT 61.6%]** [Software Engineer Full Stack (USD-based pay)](https://programathor.com.br/jobs/33856-software-engineer-full-stack-usd-based-pay) — *Full Stack TS / Node / React* | Must-Haves: 6 produção, 1 parcial, 3 gap (total 10)
+- **[🟡 MÉDIO FIT 59.7%]** [SEO Full Stack Engineer](https://remoteok.com/remote-jobs/remote-seo-full-stack-engineer-treatwell-1137805) — *Full Stack TS / Node / React* | Must-Haves: 5 produção, 1 parcial, 6 gap (total 12)
 - **[🟡 MÉDIO FIT 57.7%]** [Tech Lead Senior](https://programathor.com.br/jobs/33875-tech-lead-senior) — *Backend Node / Tech Lead* | Must-Haves: 8 produção, 1 parcial, 4 gap (total 13)
 - **[🟡 MÉDIO FIT 56.3%]** [Desenvolvedor(a) Full Stack Sênior](https://programathor.com.br/jobs/33876-desenvolvedor-a-full-stack-senior) — *Full Stack TS / Node / React* | Must-Haves: 7 produção, 0 parcial, 5 gap (total 12)
 - **[🔴 BAIXO FIT 49%]** [Desenvolvedor Back-End Senior (AI Engineer)](https://programathor.com.br/jobs/33685-desenvolvedor-back-end-senior-ai-engineer) — *AI Engineer & LLMs* | Must-Haves: 5 produção, 1 parcial, 5 gap (total 11)
+- **[🔴 BAIXO FIT 45.8%]** [Software Engineer - Data Platforms (USD-based pay)](https://programathor.com.br/jobs/33858-software-engineer-data-platforms-usd-based-pay) — *Full Stack TS / Node / React* | Must-Haves: 6 produção, 2 parcial, 8 gap (total 16)
+- **[🔴 BAIXO FIT 43.9%]** [Senior Agentic AI Engineer NDA](https://remoteok.com/remote-jobs/remote-senior-agentic-ai-engineer-nda-gt-1137710) — *AI Engineer & LLMs* | Must-Haves: 2 produção, 2 parcial, 4 gap (total 8)
 - **[🔴 BAIXO FIT 21.5%]** [Engenheiro(a) de Machine Learning Senior](https://programathor.com.br/jobs/33882-engenheiro-a-de-machine-learning-senior) — *AI Engineer & LLMs* | Must-Haves: 2 produção, 2 parcial, 9 gap (total 13)

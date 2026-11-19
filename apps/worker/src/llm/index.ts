@@ -1,8 +1,19 @@
 import type { LlmConfig } from '../config.js';
 import { OpenAICompatibleExtractor } from './openai-compatible.js';
+import { OpenCodeCliExtractor } from './opencode-cli.js';
 import type { LlmExtractor } from './types.js';
 
 export function createExtractor(config: LlmConfig): LlmExtractor {
+  if (config.provider === 'opencode-cli') {
+    return new OpenCodeCliExtractor({
+      model: config.model,
+      promptVersion: config.promptVersion,
+      schemaVersion: config.schemaVersion,
+      timeoutMs: config.timeoutMs,
+      maxRetries: config.maxRetries,
+    });
+  }
+
   const prices =
     config.priceInputPerMillion === null || config.priceOutputPerMillion === null
       ? null

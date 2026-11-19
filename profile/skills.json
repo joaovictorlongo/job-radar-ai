@@ -118,6 +118,30 @@
       "evidence": "Backoff exponencial, retry idempotente em 429/5xx, circuit breakers e microsserviços em SaaS ~40k usuários."
     },
     {
+      "canonical": "rest apis",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Design e manutenção de APIs REST e GraphQL em produção na Field Control."
+    },
+    {
+      "canonical": "testes automatizados",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Testes unitários e de integração com Vitest/Jest em produção e 97+ testes no Job Radar AI."
+    },
+    {
+      "canonical": "vitest / jest",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Suítes automatizadas em TypeScript strict com Vitest e Jest integradas no CI."
+    },
+    {
+      "canonical": "system design",
+      "proficiency": "working_knowledge",
+      "years": 3,
+      "evidence": "Arquitetura SaaS B2B na Field Control e pipeline Job Radar AI; aprofundar padrões distribuídos de escala global."
+    },
+    {
       "canonical": "pgvector",
       "proficiency": "production_senior",
       "years": 1,
