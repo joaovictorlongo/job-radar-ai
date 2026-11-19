@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { classifyJobTrack, TRACK_LABELS } from '@job-radar/shared';
 import { fetchJobById } from '@/lib/db';
 import { evaluateJobFit } from '@/lib/matching';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{
@@ -17,15 +20,26 @@ export default async function JobDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const reqsForFit = job.requirements.map((r) => ({ canonical: r.canonical, kind: r.kind }));
-  const fit = await evaluateJobFit(job.id, reqsForFit);
+  const reqsInput = job.requirements.map((r) => ({
+    canonical: r.canonical,
+    kind: r.kind,
+    category: r.category,
+    evidenceSpan: r.evidenceSpan,
+  }));
 
-  const mustReqs = job.requirements.filter((r) => r.kind === 'must');
-  const niceReqs = job.requirements.filter((r) => r.kind === 'nice');
+  const track = classifyJobTrack({
+    title: job.title,
+    seniority: job.seniority,
+    requirements: reqsInput,
+  });
+
+  const fit = evaluateJobFit(job.id, reqsInput);
+
+  const mustReqs = fit.allRequirements.filter((r) => r.kind === 'must');
+  const niceReqs = fit.allRequirements.filter((r) => r.kind === 'nice');
 
   return (
     <div className="space-y-8">
-      {/* Voltar */}
       <div>
         <Link
           href="/"
@@ -46,6 +60,15 @@ export default async function JobDetailPage({ params }: PageProps) {
               <span className="text-xs px-2.5 py-1 rounded uppercase font-semibold tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
                 {job.source}
               </span>
+              <span
+                className={`text-xs px-2.5 py-1 rounded font-semibold border ${
+                  track.inTargetScope
+                    ? 'bg-indigo-950/60 text-indigo-300 border-indigo-800/50'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}
+              >
+                {TRACK_LABELS[track.primaryTrack].label}
+              </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-400">
@@ -65,18 +88,18 @@ export default async function JobDetailPage({ params }: PageProps) {
               </span>
               {job.yearsRequired !== null && (
                 <span>
-                  Experiência Mínima: <strong className="text-slate-200">{job.yearsRequired} anos</strong>
+                  Experiência Mínima:{' '}
+                  <strong className="text-slate-200">{job.yearsRequired} anos</strong>
                 </span>
               )}
             </div>
 
-            {/* Salário verificado */}
             {job.salaryPublished ? (
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/50 text-emerald-300 text-xs">
                 <span>✓ Salário com Grounding Verificado:</span>
                 <strong>
-                  {job.salaryCurrency} {job.salaryMin?.toLocaleString()} - {job.salaryMax?.toLocaleString()} /{' '}
-                  {job.salaryPeriod}
+                  {job.salaryCurrency} {job.salaryMin?.toLocaleString()} -{' '}
+                  {job.salaryMax?.toLocaleString()} / {job.salaryPeriod}
                 </strong>
               </div>
             ) : (
@@ -87,13 +110,11 @@ export default async function JobDetailPage({ params }: PageProps) {
           </div>
 
           <div className="flex flex-col items-end gap-3">
-            <div className="p-4 rounded-xl border border-slate-700/80 bg-slate-800/40 text-center min-w-[140px]">
-              <span className="text-xs text-slate-400 font-medium">Fit com o João</span>
-              <div className="text-3xl font-bold text-emerald-400 mt-1">
-                {fit.scoreResult.score}%
-              </div>
-              <span className="text-[11px] text-slate-400">
-                {fit.scoreResult.matchedMust}/{fit.scoreResult.totalMust} must-haves
+            <div className="p-4 rounded-xl border border-slate-700/80 bg-slate-800/40 text-center min-w-[160px]">
+              <span className="text-xs text-slate-400 font-medium">Fit Ponderado</span>
+              <div className="text-3xl font-bold text-emerald-400 mt-1">{fit.score}%</div>
+              <span className="text-[11px] text-slate-400 block">
+                {fit.mustStrong} prod • {fit.mustPartial} parc • {fit.mustGap} gap
               </span>
             </div>
             <a
@@ -108,13 +129,12 @@ export default async function JobDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Grid de Requisitos e Evidências */}
+      {/* Requisitos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Requisitos Obrigatórios */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <span>Requisitos Obrigatórios (Must-Have)</span>
+              <span>Requisitos Obrigatórios (Normalizados)</span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
                 {mustReqs.length}
               </span>
@@ -123,50 +143,53 @@ export default async function JobDetailPage({ params }: PageProps) {
 
           <div className="space-y-3">
             {mustReqs.map((req) => {
-              const match = fit.matchedRequirements.find((m) => m.requirement === req.canonical);
-              const isMatched = Boolean(match);
+              const borderClass =
+                req.status === 'strong'
+                  ? 'border-emerald-900/40'
+                  : req.status === 'partial'
+                    ? 'border-amber-900/40'
+                    : 'border-rose-900/40';
+              const badgeClass =
+                req.status === 'strong'
+                  ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/40'
+                  : req.status === 'partial'
+                    ? 'bg-amber-950/60 text-amber-300 border border-amber-800/40'
+                    : 'bg-rose-950/60 text-rose-300 border border-rose-800/40';
+              const icon = req.status === 'strong' ? '✓' : req.status === 'partial' ? '◐' : '✗';
+              const iconColor =
+                req.status === 'strong'
+                  ? 'text-emerald-400'
+                  : req.status === 'partial'
+                    ? 'text-amber-400'
+                    : 'text-rose-400';
 
               return (
                 <div
-                  key={req.id}
-                  className={`border rounded-xl p-4 transition-all ${
-                    isMatched
-                      ? 'bg-slate-900/90 border-emerald-900/40'
-                      : 'bg-slate-900/90 border-rose-900/40'
-                  }`}
+                  key={`must-${req.requirement}`}
+                  className={`border rounded-xl p-4 bg-slate-900/90 ${borderClass}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm ${isMatched ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {isMatched ? '✓' : '✗'}
-                      </span>
-                      <strong className="text-white text-sm capitalize">{req.canonical}</strong>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
-                        {req.category}
+                      <span className={`text-sm ${iconColor}`}>{icon}</span>
+                      <strong className="text-white text-sm capitalize">{req.requirement}</strong>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
+                        {req.cluster}
                       </span>
                     </div>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                        isMatched
-                          ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/40'
-                          : 'bg-rose-950/60 text-rose-300 border border-rose-800/40'
-                      }`}
-                    >
-                      {isMatched ? 'Comprovado' : 'Gap'}
+                    <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${badgeClass}`}>
+                      {req.proficiencyLabel}
                     </span>
                   </div>
 
-                  {/* Evidência no Perfil do João */}
-                  {match?.evidence && (
+                  {req.evidence && (
                     <div className="mt-2.5 pt-2 border-t border-slate-800/60 text-xs text-slate-300">
                       <span className="text-[10px] text-slate-500 uppercase tracking-wider block">
                         Evidência no Perfil do João:
                       </span>
-                      <p className="italic text-emerald-200/90 mt-0.5">{match.evidence}</p>
+                      <p className="italic text-emerald-200/90 mt-0.5">{req.evidence}</p>
                     </div>
                   )}
 
-                  {/* Trecho Literal na Vaga (Grounding) */}
                   <div className="mt-2 pt-2 border-t border-slate-800/40 text-xs text-slate-400">
                     <span className="text-[10px] text-slate-500 uppercase tracking-wider block">
                       Trecho Extraído da Vaga (Grounding Literal):
@@ -181,7 +204,6 @@ export default async function JobDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Requisitos Desejáveis & Análise de Gaps */}
         <div className="space-y-6">
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -195,52 +217,64 @@ export default async function JobDetailPage({ params }: PageProps) {
               <p className="text-xs text-slate-500 italic">Nenhum diferencial listado nesta vaga.</p>
             ) : (
               <div className="space-y-3">
-                {niceReqs.map((req) => {
-                  const match = fit.matchedRequirements.find((m) => m.requirement === req.canonical);
-                  const isMatched = Boolean(match);
-
-                  return (
-                    <div
-                      key={req.id}
-                      className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-200 font-medium capitalize">
-                          {isMatched ? '✓' : '•'} {req.canonical}
-                        </span>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded ${
-                            isMatched
-                              ? 'bg-blue-950/60 text-blue-300'
+                {niceReqs.map((req) => (
+                  <div
+                    key={`nice-${req.requirement}`}
+                    className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-xs"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-200 font-medium capitalize">
+                        {req.status === 'strong' ? '✓' : req.status === 'partial' ? '◐' : '•'}{' '}
+                        {req.requirement}
+                      </span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded ${
+                          req.status === 'strong'
+                            ? 'bg-emerald-950/60 text-emerald-300'
+                            : req.status === 'partial'
+                              ? 'bg-amber-950/60 text-amber-300'
                               : 'bg-slate-800 text-slate-400'
-                          }`}
-                        >
-                          {isMatched ? 'Diferencial Atendido' : 'Opcional'}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-400 mt-1">&quot;{req.evidenceSpan}&quot;</p>
+                        }`}
+                      >
+                        {req.proficiencyLabel}
+                      </span>
                     </div>
-                  );
-                })}
+                    <p className="text-[11px] text-slate-400 mt-1">&quot;{req.evidenceSpan}&quot;</p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Plano de Abordagem para esta vaga */}
           <div className="bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-900/40 rounded-xl p-5 space-y-3">
             <h3 className="text-sm font-bold text-indigo-300">
-              Estratégia Recomendada para Entrevista Técnica
+              Preparação Direcionada para esta Vaga
             </h3>
             <ul className="text-xs text-slate-300 space-y-2 list-disc list-inside">
-              <li>
-                <strong>Destaque inicial:</strong> Valorize a experiência sólida de 4 anos em SaaS B2B com ~40 mil usuários na Field Control.
-              </li>
-              <li>
-                <strong>Diferencial técnico:</strong> Demonstre o uso de TypeScript estrito sem <code className="text-indigo-300">any</code>, autenticação OAuth PKCE e resiliência de rede.
-              </li>
+              {fit.strongRequirements.length > 0 && (
+                <li>
+                  <strong>Apoie a narrativa nas suas fortalezas de produção:</strong>{' '}
+                  {fit.strongRequirements
+                    .slice(0, 4)
+                    .map((r) => r.requirement)
+                    .join(', ')}
+                  .
+                </li>
+              )}
+              {fit.partialRequirements.length > 0 && (
+                <li>
+                  <strong>Aprofunde antes da entrevista (Quick Wins):</strong>{' '}
+                  {fit.partialRequirements.map((r) => r.requirement).join(', ')}.
+                </li>
+              )}
               {fit.gapRequirements.length > 0 && (
                 <li>
-                  <strong>Para contornar os gaps:</strong> Mostre facilidade de curva de aprendizado nas lacunas ({fit.gapRequirements.slice(0, 3).map((g) => g.requirement).join(', ')}), apoiando-se na sólida base de engenharia de software e banco relacional.
+                  <strong>Gaps reais para mapear / estudar:</strong>{' '}
+                  {fit.gapRequirements
+                    .slice(0, 4)
+                    .map((g) => g.requirement)
+                    .join(', ')}
+                  .
                 </li>
               )}
             </ul>

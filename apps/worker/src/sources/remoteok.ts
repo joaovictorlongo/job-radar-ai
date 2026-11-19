@@ -58,6 +58,55 @@ export function parseRemoteOkJob(item: RemoteOkItem): RawJob {
   };
 }
 
+const TECH_TAGS = new Set([
+  'dev',
+  'engineer',
+  'engineering',
+  'software',
+  'javascript',
+  'typescript',
+  'node',
+  'nodejs',
+  'react',
+  'nextjs',
+  'angular',
+  'fullstack',
+  'full-stack',
+  'backend',
+  'back-end',
+  'frontend',
+  'front-end',
+  'ai',
+  'ml',
+  'llm',
+  'python',
+  'devops',
+  'cloud',
+  'aws',
+  'postgres',
+  'postgresql',
+]);
+
+const TECH_TITLE_PATTERN =
+  /\b(?:engineer|developer|architect|full[\s-]?stack|back[\s-]?end|front[\s-]?end|ai\b|ml\b|llm|software|tech lead|staff|devops|sre|platform)\b/i;
+
+const NON_TECH_TITLE_PATTERN =
+  /\b(?:patient care|account manager|partnerships|bd lead|sales|marketing|recruiter|customer support|operations coach|question reviewers|copywriter)\b/i;
+
+export function isEngineeringRemoteOkItem(item: RemoteOkItem): boolean {
+  const title = item.position ?? '';
+  if (NON_TECH_TITLE_PATTERN.test(title)) {
+    return false;
+  }
+  if (TECH_TITLE_PATTERN.test(title)) {
+    return true;
+  }
+  if (Array.isArray(item.tags)) {
+    return item.tags.some((t) => TECH_TAGS.has(t.toLowerCase().trim()));
+  }
+  return false;
+}
+
 export class RemoteOkSource implements JobSource {
   readonly name = 'remoteok';
 
@@ -65,7 +114,7 @@ export class RemoteOkSource implements JobSource {
 
   async *fetchJobs(limit: number): AsyncGenerator<RawJob> {
     const response = await this.http.get(API_URL);
-    const items = parseRemoteOkPayload(JSON.parse(response.body));
+    const items = parseRemoteOkPayload(JSON.parse(response.body)).filter(isEngineeringRemoteOkItem);
     let delivered = 0;
     for (const item of items) {
       if (delivered >= limit) {

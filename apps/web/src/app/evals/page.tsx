@@ -1,5 +1,7 @@
 import { fetchLatestEvalRun } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 interface MetricCheck {
   id: string;
   name: string;

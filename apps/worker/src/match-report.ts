@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import type { TrackFilter } from '@job-radar/shared';
 import { loadConfig } from './config.js';
 import { runMatchingEngine } from './matching/engine.js';
 import { generateGapAndMatchingReport } from './matching/report-generator.js';
@@ -12,6 +13,7 @@ async function main(): Promise<void> {
     options: {
       extractor: { type: 'string', default: 'extract-v2' },
       profileVersion: { type: 'string', default: 'v1' },
+      track: { type: 'string', default: 'target' },
       out: { type: 'string' },
     },
     strict: true,
@@ -26,45 +28,47 @@ async function main(): Promise<void> {
   const outPath = values.out ?? defaultOut;
 
   try {
-    console.log('Executando matching vetorial e análise de gaps de mercado...');
+    console.log('Executando inteligência de estudo, matching ponderado e análise de gaps...');
     const result = await runMatchingEngine(pool, {
       extractorVersion: values.extractor ?? 'extract-v2',
       profileVersion: values.profileVersion ?? 'v1',
+      trackFilter: (values.track as TrackFilter | undefined) ?? 'target',
     });
 
     const reportMarkdown = generateGapAndMatchingReport(result);
     mkdirSync(dirname(outPath), { recursive: true });
     writeFileSync(outPath, reportMarkdown, 'utf8');
 
+    const study = result.studyIntelligence;
     console.log('\n======================================================');
-    console.log('        JOB RADAR AI — MATCHING & GAP REPORT         ');
+    console.log('     JOB RADAR AI — STUDY & GAP INTELLIGENCE REPORT   ');
     console.log('======================================================');
-    console.log(`Vagas Analisadas:         ${result.jobs.length}`);
-    console.log(`Skills Distintas no Mercado: ${result.marketGapAnalysis.distinctSkillsDemanded}`);
-    console.log(`Cobertura Global do Perfil: ${result.marketGapAnalysis.overallCoveragePercentage}%`);
-    console.log(`Cobertura em Must-Haves:    ${result.marketGapAnalysis.mustHaveCoveragePercentage}%`);
+    console.log(
+      `Vagas na Trilha (${study.trackFilter}): ${study.analyzedJobsCount}/${study.totalJobsInDatabase} (${study.outOfScopeJobsCount} fora de escopo)`,
+    );
+    console.log(`Fit Médio na Trilha:        ${study.joaoAvgFitScore}%`);
+    console.log(
+      `Must-Haves em Produção:     ${study.productionMustCoveragePct}% (${study.technicalMustCoveragePct}% c/ parcial)`,
+    );
     console.log('------------------------------------------------------');
-    console.log('            FORTALEZAS NUCLEARES (CORE ADVANTAGES)    ');
+    console.log('         TOP 5 GAPS PRIORITÁRIOS PARA ESTUDO          ');
     console.log('------------------------------------------------------');
-    for (const s of result.marketGapAnalysis.coreAdvantages.slice(0, 5)) {
-      console.log(`  ✓ ${s.canonical.padEnd(20)} | Demanda: ${s.jobPercentage}% das vagas (${s.jobCount}x)`);
+    for (const item of study.studyPriorities.slice(0, 5)) {
+      console.log(
+        `  [ROI ${String(item.priorityScore).padStart(2)}] ${item.skill.canonical.padEnd(18)} | ${item.skill.jobPercentage}% (${item.skill.jobCount}x) | ${item.skill.userProficiencyLabel} | +${item.affectedJobsAvgGain} pts/vaga`,
+      );
     }
-
     console.log('------------------------------------------------------');
-    console.log('            GAPS ESTRATÉGICOS (RISCOS VS OUTROS CANDIDATOS) ');
+    console.log('         BENCHMARK VS ARQUÉTIPOS CONCORRENTES         ');
     console.log('------------------------------------------------------');
-    for (const g of result.marketGapAnalysis.strategicGaps.slice(0, 5)) {
-      console.log(`  ✗ ${g.canonical.padEnd(20)} | Demanda: ${g.jobPercentage}% das vagas | ${g.recommendation}`);
-    }
-
-    console.log('------------------------------------------------------');
-    console.log('            TOP 3 VAGAS COM MAIOR FIT                 ');
-    console.log('------------------------------------------------------');
-    for (const j of result.jobs.slice(0, 3)) {
-      console.log(`  [Score: ${j.scoreResult.score}%] ${j.title} (${j.scoreResult.matchedMust}/${j.scoreResult.totalMust} musts)`);
+    for (const b of study.competitorBenchmarks) {
+      const sign = b.scoreDelta >= 0 ? '+' : '';
+      console.log(
+        `  ${b.archetype.name.padEnd(32)} | João ${b.joaoAvgScore}% vs ${b.competitorAvgScore}% (${sign}${b.scoreDelta} pts)`,
+      );
     }
     console.log('======================================================');
-    console.log(`Relatório completo salvo em:\n${outPath}`);
+    console.log(`Relatório salvo em:\n${outPath}`);
     console.log('======================================================\n');
   } finally {
     await pool.end();

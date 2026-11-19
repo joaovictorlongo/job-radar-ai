@@ -1,4 +1,5 @@
 import pg from 'pg';
+import type { StudyJobInput } from '@job-radar/shared';
 
 const { Pool } = pg;
 
@@ -15,6 +16,13 @@ export function getDbPool(): pg.Pool {
     });
   }
   return globalPool;
+}
+
+export interface JobListRequirement {
+  canonical: string;
+  kind: 'must' | 'nice';
+  category: string;
+  evidenceSpan: string;
 }
 
 export interface JobListItem {
@@ -35,6 +43,7 @@ export interface JobListItem {
   mustCount: number;
   niceCount: number;
   skills: string[];
+  requirements: JobListRequirement[];
 }
 
 export async function fetchJobsList(filters?: {
@@ -58,7 +67,9 @@ export async function fetchJobsList(filters?: {
 
   if (filters?.search && filters.search.trim()) {
     params.push(`%${filters.search.trim().toLowerCase()}%`);
-    conditions.push(`(lower(j.title) like $${params.length} or lower(j.description) like $${params.length})`);
+    conditions.push(
+      `(lower(j.title) like $${params.length} or lower(j.description) like $${params.length})`,
+    );
   }
 
   const query = `
@@ -82,7 +93,18 @@ export async function fetchJobsList(filters?: {
       coalesce(
         json_agg(distinct r.canonical) filter (where r.canonical is not null),
         '[]'
-      ) as skills
+      ) as skills,
+      coalesce(
+        json_agg(
+          json_build_object(
+            'canonical', r.canonical,
+            'kind', jr.kind,
+            'category', coalesce(r.category, 'other'),
+            'evidenceSpan', coalesce(jr.evidence_span, r.canonical)
+          )
+        ) filter (where r.canonical is not null),
+        '[]'
+      ) as requirements
     from jobs j
     left join job_requirements jr on jr.job_id = j.id
     left join requirements r on r.id = jr.requirement_id
@@ -94,23 +116,39 @@ export async function fetchJobsList(filters?: {
   const res = await pool.query(query, params);
 
   return res.rows.map((row) => ({
-    id: row.id,
-    source: row.source,
-    sourceJobId: row.source_job_id,
-    url: row.url,
-    title: row.title,
-    company: row.company,
-    workModel: row.work_model,
-    seniority: row.seniority,
+    id: String(row.id),
+    source: String(row.source),
+    sourceJobId: String(row.source_job_id),
+    url: String(row.url),
+    title: String(row.title),
+    company: row.company ? String(row.company) : null,
+    workModel: row.work_model ? String(row.work_model) : null,
+    seniority: row.seniority ? String(row.seniority) : null,
     salaryPublished: Boolean(row.salary_published),
     salaryMin: row.salary_min ? Number(row.salary_min) : null,
     salaryMax: row.salary_max ? Number(row.salary_max) : null,
-    salaryCurrency: row.salary_currency,
+    salaryCurrency: row.salary_currency ? String(row.salary_currency) : null,
     yearsRequired: row.years_required ? Number(row.years_required) : null,
-    collectedAt: row.collected_at,
+    collectedAt: String(row.collected_at),
     mustCount: Number(row.must_count || 0),
     niceCount: Number(row.nice_count || 0),
     skills: Array.isArray(row.skills) ? row.skills : [],
+    requirements: Array.isArray(row.requirements) ? row.requirements : [],
+  }));
+}
+
+export async function fetchStudyJobs(): Promise<StudyJobInput[]> {
+  const jobs = await fetchJobsList();
+  return jobs.map((j) => ({
+    id: j.id,
+    title: j.title,
+    company: j.company,
+    source: j.source,
+    url: j.url,
+    seniority: j.seniority,
+    workModel: j.workModel,
+    salaryPublished: j.salaryPublished,
+    requirements: j.requirements,
   }));
 }
 
@@ -170,31 +208,31 @@ export async function fetchJobById(id: string): Promise<JobDetail | null> {
   );
 
   return {
-    id: job.id,
-    source: job.source,
-    sourceJobId: job.source_job_id,
-    url: job.url,
-    title: job.title,
-    company: job.company,
-    workModel: job.work_model,
-    seniority: job.seniority,
+    id: String(job.id),
+    source: String(job.source),
+    sourceJobId: String(job.source_job_id),
+    url: String(job.url),
+    title: String(job.title),
+    company: job.company ? String(job.company) : null,
+    workModel: job.work_model ? String(job.work_model) : null,
+    seniority: job.seniority ? String(job.seniority) : null,
     salaryPublished: Boolean(job.salary_published),
     salaryMin: job.salary_min ? Number(job.salary_min) : null,
     salaryMax: job.salary_max ? Number(job.salary_max) : null,
-    salaryCurrency: job.salary_currency,
-    salaryPeriod: job.salary_period,
+    salaryCurrency: job.salary_currency ? String(job.salary_currency) : null,
+    salaryPeriod: job.salary_period ? String(job.salary_period) : null,
     yearsRequired: job.years_required ? Number(job.years_required) : null,
-    description: job.description,
-    lang: job.lang,
-    collectedAt: job.collected_at,
+    description: String(job.description),
+    lang: String(job.lang),
+    collectedAt: String(job.collected_at),
     requirements: reqsRes.rows.map((r) => ({
       id: String(r.id),
-      canonical: r.canonical,
-      kind: r.kind,
+      canonical: String(r.canonical),
+      kind: r.kind === 'nice' ? 'nice' : 'must',
       minYears: r.min_years ? Number(r.min_years) : null,
-      evidenceSpan: r.evidence_span,
+      evidenceSpan: String(r.evidence_span),
       confidence: Number(r.confidence || 1.0),
-      category: r.category || 'tech',
+      category: r.category ? String(r.category) : 'other',
     })),
   };
 }
@@ -222,11 +260,11 @@ export async function fetchLatestEvalRun(): Promise<EvalRunRecord | null> {
 
   return {
     id: Number(row.id),
-    datasetVersion: row.dataset_version,
-    extractorVersion: row.extractor_version,
+    datasetVersion: String(row.dataset_version),
+    extractorVersion: String(row.extractor_version),
     nJobs: Number(row.n_jobs),
     metrics: typeof row.metrics === 'string' ? JSON.parse(row.metrics) : row.metrics,
     approved: Boolean(row.approved),
-    createdAt: row.created_at,
+    createdAt: String(row.created_at),
   };
 }

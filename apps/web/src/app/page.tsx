@@ -1,39 +1,92 @@
 import Link from 'next/link';
+import {
+  classifyJobTrack,
+  jobMatchesTrackFilter,
+  TRACK_LABELS,
+  type TrackFilter,
+} from '@job-radar/shared';
 import { fetchJobsList } from '@/lib/db';
 import { evaluateJobFit } from '@/lib/matching';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   searchParams: Promise<{
     seniority?: string;
     workModel?: string;
+    track?: string;
     search?: string;
   }>;
 }
 
+const VALID_TRACKS: readonly TrackFilter[] = [
+  'target',
+  'fullstack_ts',
+  'ai_engineer',
+  'backend_node_lead',
+  'all',
+  'out_of_scope',
+];
+
+function parseTrack(raw: string | undefined): TrackFilter {
+  if (raw && (VALID_TRACKS as readonly string[]).includes(raw)) {
+    return raw as TrackFilter;
+  }
+  return 'target';
+}
+
+function buildHref(
+  current: { seniority?: string; workModel?: string; track?: string },
+  updates: Partial<{ seniority?: string; workModel?: string; track?: string }>,
+): string {
+  const merged = { ...current, ...updates };
+  const qs = new URLSearchParams();
+  if (merged.track && merged.track !== 'target') qs.set('track', merged.track);
+  if (merged.seniority && merged.seniority !== 'all') qs.set('seniority', merged.seniority);
+  if (merged.workModel && merged.workModel !== 'all') qs.set('workModel', merged.workModel);
+  const str = qs.toString();
+  return str.length > 0 ? `/?${str}` : '/';
+}
+
 export default async function JobsPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
+  const trackFilter = parseTrack(resolvedParams.track);
   const jobs = await fetchJobsList(resolvedParams);
 
-  // Calcula fit para cada vaga
-  const jobsWithFit = await Promise.all(
-    jobs.map(async (job) => {
-      const reqsForFit = job.skills.map((s) => ({ canonical: s, kind: 'must' as const }));
-      const fit = await evaluateJobFit(job.id, reqsForFit);
-      return {
-        ...job,
-        fit,
-      };
-    }),
-  );
+  const jobsWithTrackAndFit = jobs.map((job) => {
+    const track = classifyJobTrack({
+      title: job.title,
+      seniority: job.seniority,
+      requirements: job.requirements,
+    });
+    const fit = evaluateJobFit(job.id, job.requirements);
+    return {
+      ...job,
+      track,
+      fit,
+    };
+  });
 
-  // Ordena por Fit Score decrescente
-  jobsWithFit.sort((a, b) => b.fit.scoreResult.score - a.fit.scoreResult.score);
+  const targetCount = jobsWithTrackAndFit.filter((j) => j.track.inTargetScope).length;
+  const outOfScopeCount = jobsWithTrackAndFit.length - targetCount;
 
-  const highFitCount = jobsWithFit.filter((j) => j.fit.scoreResult.fitLevel === 'high').length;
+  const filteredJobs = jobsWithTrackAndFit
+    .filter((j) => jobMatchesTrackFilter(j.track, trackFilter))
+    .sort((a, b) => b.fit.score - a.fit.score);
+
+  const highFitCount = filteredJobs.filter((j) => j.fit.fitLevel === 'high').length;
   const avgScore =
-    jobsWithFit.length > 0
-      ? Math.round(jobsWithFit.reduce((acc, j) => acc + j.fit.scoreResult.score, 0) / jobsWithFit.length)
+    filteredJobs.length > 0
+      ? Math.round(
+          (filteredJobs.reduce((acc, j) => acc + j.fit.score, 0) / filteredJobs.length) * 10,
+        ) / 10
       : 0;
+
+  const currentParams = {
+    seniority: resolvedParams.seniority,
+    workModel: resolvedParams.workModel,
+    track: trackFilter,
+  };
 
   return (
     <div className="space-y-8">
@@ -45,15 +98,16 @@ export default async function JobsPage({ searchParams }: PageProps) {
               Radar de Vagas & Compatibilidade de Carreira
             </h1>
             <p className="mt-2 text-sm text-slate-400 max-w-2xl">
-              Análise comparativa em tempo real entre os requisitos extraídos das vagas e as evidências técnicas do perfil do <strong>João Victor Longo</strong>, com RAG no pgvector e identificação de lacunas.
+              Scoring ponderado por nível de proficiência (produção vs parcial vs gap) com requisitos normalizados
+              contra o perfil estruturado de <strong>João Victor Longo</strong>.
             </p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <Link
-              href="/gaps"
+              href={trackFilter === 'target' ? '/gaps' : `/gaps?track=${trackFilter}`}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center"
             >
-              Ver Análise de Gaps
+              Plano de Estudo & Gaps
             </Link>
             <Link
               href="/evals"
@@ -67,115 +121,119 @@ export default async function JobsPage({ searchParams }: PageProps) {
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800/80">
           <div>
-            <span className="text-xs text-slate-400">Vagas Analisadas</span>
-            <p className="text-2xl font-bold text-white mt-0.5">{jobs.length}</p>
+            <span className="text-xs text-slate-400">Vagas na Trilha</span>
+            <p className="text-2xl font-bold text-white mt-0.5">
+              {filteredJobs.length}
+              <span className="text-xs text-slate-500 font-normal ml-1.5">
+                / {jobs.length} total
+              </span>
+            </p>
           </div>
           <div>
             <span className="text-xs text-slate-400">Alto Fit (&ge; 75%)</span>
             <p className="text-2xl font-bold text-emerald-400 mt-0.5">{highFitCount}</p>
           </div>
           <div>
-            <span className="text-xs text-slate-400">Score Médio de Fit</span>
+            <span className="text-xs text-slate-400">Score Médio na Trilha</span>
             <p className="text-2xl font-bold text-blue-400 mt-0.5">{avgScore}%</p>
           </div>
           <div>
-            <span className="text-xs text-slate-400">Extrator Ativo</span>
-            <p className="text-sm font-mono text-slate-300 mt-1">extract-v2 (Qwen)</p>
+            <span className="text-xs text-slate-400">Fora de Escopo Filtradas</span>
+            <p className="text-2xl font-bold text-slate-400 mt-0.5">{outOfScopeCount}</p>
           </div>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="text-slate-400 self-center mr-1">Senioridade:</span>
-          <Link
-            href="/"
-            className={`px-3 py-1.5 rounded-lg border ${
-              !resolvedParams?.seniority || resolvedParams.seniority === 'all'
-                ? 'bg-blue-600 border-blue-500 text-white font-medium'
-                : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            Todas
-          </Link>
-          <Link
-            href="/?seniority=senior"
-            className={`px-3 py-1.5 rounded-lg border ${
-              resolvedParams?.seniority === 'senior'
-                ? 'bg-blue-600 border-blue-500 text-white font-medium'
-                : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            Sênior
-          </Link>
-          <Link
-            href="/?seniority=mid"
-            className={`px-3 py-1.5 rounded-lg border ${
-              resolvedParams?.seniority === 'mid'
-                ? 'bg-blue-600 border-blue-500 text-white font-medium'
-                : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            Pleno
-          </Link>
-          <Link
-            href="/?seniority=lead"
-            className={`px-3 py-1.5 rounded-lg border ${
-              resolvedParams?.seniority === 'lead'
-                ? 'bg-blue-600 border-blue-500 text-white font-medium'
-                : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            Lead
-          </Link>
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div className="flex flex-wrap gap-2 text-xs items-center">
+          <span className="text-slate-400 mr-1">Trilha:</span>
+          {(['target', 'fullstack_ts', 'ai_engineer', 'backend_node_lead', 'all'] as const).map(
+            (t) => (
+              <Link
+                key={t}
+                href={buildHref(currentParams, { track: t })}
+                className={`px-3 py-1.5 rounded-lg border ${
+                  trackFilter === t
+                    ? 'bg-indigo-600 border-indigo-500 text-white font-medium'
+                    : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                {TRACK_LABELS[t].label}
+              </Link>
+            ),
+          )}
         </div>
 
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="text-slate-400 self-center mr-1">Regime:</span>
-          <Link
-            href="/?workModel=remote"
-            className={`px-3 py-1.5 rounded-lg border ${
-              resolvedParams?.workModel === 'remote'
-                ? 'bg-indigo-600 border-indigo-500 text-white font-medium'
-                : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            Remoto
-          </Link>
-          <Link
-            href="/?workModel=hybrid"
-            className={`px-3 py-1.5 rounded-lg border ${
-              resolvedParams?.workModel === 'hybrid'
-                ? 'bg-indigo-600 border-indigo-500 text-white font-medium'
-                : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            Híbrido
-          </Link>
-          <Link
-            href="/?workModel=onsite"
-            className={`px-3 py-1.5 rounded-lg border ${
-              resolvedParams?.workModel === 'onsite'
-                ? 'bg-indigo-600 border-indigo-500 text-white font-medium'
-                : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            Presencial
-          </Link>
+        <div className="flex flex-wrap gap-4 items-center justify-between pt-2 border-t border-slate-800/60">
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="text-slate-400 self-center mr-1">Senioridade:</span>
+            {([
+              { id: 'all', label: 'Todas' },
+              { id: 'senior', label: 'Sênior' },
+              { id: 'mid', label: 'Pleno' },
+              { id: 'lead', label: 'Lead' },
+            ] as const).map((s) => {
+              const active =
+                s.id === 'all'
+                  ? !resolvedParams.seniority || resolvedParams.seniority === 'all'
+                  : resolvedParams.seniority === s.id;
+              return (
+                <Link
+                  key={s.id}
+                  href={buildHref(currentParams, { seniority: s.id })}
+                  className={`px-3 py-1.5 rounded-lg border ${
+                    active
+                      ? 'bg-blue-600 border-blue-500 text-white font-medium'
+                      : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  {s.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="text-slate-400 self-center mr-1">Regime:</span>
+            {([
+              { id: 'all', label: 'Todos' },
+              { id: 'remote', label: 'Remoto' },
+              { id: 'hybrid', label: 'Híbrido' },
+              { id: 'onsite', label: 'Presencial' },
+            ] as const).map((w) => {
+              const active =
+                w.id === 'all'
+                  ? !resolvedParams.workModel || resolvedParams.workModel === 'all'
+                  : resolvedParams.workModel === w.id;
+              return (
+                <Link
+                  key={w.id}
+                  href={buildHref(currentParams, { workModel: w.id })}
+                  className={`px-3 py-1.5 rounded-lg border ${
+                    active
+                      ? 'bg-indigo-600 border-indigo-500 text-white font-medium'
+                      : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  {w.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Lista de Vagas */}
       <div className="space-y-4">
-        {jobsWithFit.map((job) => {
-          const score = job.fit.scoreResult.score;
+        {filteredJobs.map((job) => {
+          const score = job.fit.score;
           let fitBadgeClass = 'bg-rose-950/60 text-rose-300 border-rose-800/50';
           let fitLabel = 'Baixo Fit';
           if (score >= 75) {
             fitBadgeClass = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50';
             fitLabel = 'Alto Fit';
-          } else if (score >= 50) {
+          } else if (score >= 55) {
             fitBadgeClass = 'bg-amber-950/60 text-amber-300 border-amber-800/50';
             fitLabel = 'Médio Fit';
           }
@@ -194,23 +252,41 @@ export default async function JobsPage({ searchParams }: PageProps) {
                     >
                       {job.title}
                     </Link>
-                    <span className="text-xs px-2 py-0.5 rounded uppercase font-semibold tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                    <span className="text-[10px] px-2 py-0.5 rounded uppercase font-semibold tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
                       {job.source}
+                    </span>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-semibold border ${
+                        job.track.inTargetScope
+                          ? 'bg-indigo-950/60 text-indigo-300 border-indigo-800/40'
+                          : 'bg-slate-800 text-slate-400 border-slate-700'
+                      }`}
+                    >
+                      {TRACK_LABELS[job.track.primaryTrack].label}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
                     {job.company && <span>Empresa: {job.company}</span>}
-                    <span>Senioridade: <strong className="text-slate-300">{job.seniority ?? 'N/D'}</strong></span>
-                    <span>Modelo: <strong className="text-slate-300">{job.workModel ?? 'N/D'}</strong></span>
+                    <span>
+                      Senioridade: <strong className="text-slate-300">{job.seniority ?? 'N/D'}</strong>
+                    </span>
+                    <span>
+                      Modelo: <strong className="text-slate-300">{job.workModel ?? 'N/D'}</strong>
+                    </span>
                     {job.yearsRequired !== null && (
-                      <span>Anos Req.: <strong className="text-slate-300">{job.yearsRequired} anos</strong></span>
-                    )}
-                    {job.salaryPublished && (
-                      <span className="text-emerald-400 font-semibold">
-                        Salário: {job.salaryCurrency} {job.salaryMin?.toLocaleString()} - {job.salaryMax?.toLocaleString()}
+                      <span>
+                        Anos Req.: <strong className="text-slate-300">{job.yearsRequired} anos</strong>
                       </span>
                     )}
+                    <span>
+                      Must-Haves:{' '}
+                      <strong className="text-emerald-300">{job.fit.mustStrong} produção</strong>
+                      {job.fit.mustPartial > 0 && (
+                        <strong className="text-amber-300"> + {job.fit.mustPartial} parcial</strong>
+                      )}
+                      <span className="text-slate-500"> / {job.fit.mustTotal}</span>
+                    </span>
                   </div>
                 </div>
 
@@ -228,35 +304,38 @@ export default async function JobsPage({ searchParams }: PageProps) {
                 </div>
               </div>
 
-              {/* Tags de Requisitos e Gaps */}
+              {/* Tags: Produção / Parcial / Gap */}
               <div className="mt-4 pt-3 border-t border-slate-800/60 flex flex-wrap gap-1.5">
-                {job.fit.matchedRequirements.slice(0, 6).map((m) => (
+                {job.fit.strongRequirements.slice(0, 5).map((m) => (
                   <span
-                    key={m.requirement}
+                    key={`strong-${m.requirement}`}
                     className="text-[11px] px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-300 border border-emerald-800/30 flex items-center gap-1"
                   >
                     <span>✓</span> {m.requirement}
                   </span>
                 ))}
+                {job.fit.partialRequirements.slice(0, 3).map((p) => (
+                  <span
+                    key={`partial-${p.requirement}`}
+                    className="text-[11px] px-2 py-0.5 rounded bg-amber-950/40 text-amber-300 border border-amber-800/30 flex items-center gap-1"
+                  >
+                    <span>◐</span> {p.requirement} (parcial)
+                  </span>
+                ))}
                 {job.fit.gapRequirements.slice(0, 4).map((g) => (
                   <span
-                    key={g.requirement}
+                    key={`gap-${g.requirement}`}
                     className="text-[11px] px-2 py-0.5 rounded bg-rose-950/40 text-rose-300 border border-rose-800/30 flex items-center gap-1"
                   >
                     <span>✗</span> {g.requirement} (gap)
                   </span>
                 ))}
-                {job.fit.matchedRequirements.length + job.fit.gapRequirements.length > 10 && (
-                  <span className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                    +{job.fit.matchedRequirements.length + job.fit.gapRequirements.length - 10} mais
-                  </span>
-                )}
               </div>
             </div>
           );
         })}
 
-        {jobsWithFit.length === 0 && (
+        {filteredJobs.length === 0 && (
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center text-slate-400">
             Nenhuma vaga encontrada com os filtros selecionados.
           </div>

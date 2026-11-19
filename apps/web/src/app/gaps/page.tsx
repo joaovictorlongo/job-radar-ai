@@ -1,282 +1,713 @@
-import { getDbPool } from '@/lib/db';
-import { analyzeMarketGaps, type JobWithExtractedRequirements, type UserSkillEvidenceMap } from '@job-radar/shared';
+import Link from 'next/link';
+import {
+  analyzeStudyIntelligence,
+  proficiencyLabelPtBr,
+  TRACK_LABELS,
+  type StudyHorizon,
+  type TrackFilter,
+} from '@job-radar/shared';
+import { fetchStudyJobs } from '@/lib/db';
+import { loadProfileSkills } from '@/lib/profile';
 
-export default async function GapsPage() {
-  const pool = getDbPool();
+export const dynamic = 'force-dynamic';
 
-  // 1. Busca dados de vagas e requisitos
-  const jobsRes = await pool.query<{ id: string; title: string }>(
-    `select id, title from jobs where extractor_version = 'extract-v2'`,
-  );
+interface GapsPageProps {
+  searchParams: Promise<{
+    track?: string;
+  }>;
+}
 
-  const reqsRes = await pool.query<{ job_id: string; canonical: string; kind: 'must' | 'nice'; category: string | null }>(
-    `select jr.job_id, r.canonical, jr.kind, r.category
-     from job_requirements jr
-     join requirements r on r.id = jr.requirement_id
-     join jobs j on j.id = jr.job_id
-     where j.extractor_version = 'extract-v2'`,
-  );
+const VALID_TRACK_FILTERS: readonly TrackFilter[] = [
+  'target',
+  'fullstack_ts',
+  'ai_engineer',
+  'backend_node_lead',
+  'all',
+  'out_of_scope',
+];
 
-  const reqsByJob = new Map<string, Array<{ canonical: string; kind: 'must' | 'nice'; category?: string }>>();
-  for (const r of reqsRes.rows) {
-    let list = reqsByJob.get(r.job_id);
-    if (!list) {
-      list = [];
-      reqsByJob.set(r.job_id, list);
-    }
-    list.push({ canonical: r.canonical, kind: r.kind, category: r.category ?? 'tech' });
+function parseTrackFilter(raw: string | undefined): TrackFilter {
+  if (raw && (VALID_TRACK_FILTERS as readonly string[]).includes(raw)) {
+    return raw as TrackFilter;
   }
+  return 'target';
+}
 
-  const jobsData: JobWithExtractedRequirements[] = jobsRes.rows.map((j) => ({
-    id: j.id,
-    title: j.title,
-    requirements: reqsByJob.get(j.id) ?? [],
-  }));
-
-  // 2. Busca chunks do perfil do João
-  const chunksRes = await pool.query<{ section: string; content: string }>(
-    `select section, content from profile_chunks where version = 'v1'`,
-  );
-  const profileText = chunksRes.rows.map((r) => `${r.section}\n${r.content}`).join('\n\n');
-
-  // Mapeia evidências do usuário
-  const userEvidence: UserSkillEvidenceMap = {};
-  const distinctSkills = new Set<string>();
-  for (const r of reqsRes.rows) {
-    distinctSkills.add(r.canonical.toLowerCase().trim());
+function horizonBadgeClass(horizon: StudyHorizon): string {
+  switch (horizon) {
+    case 'quick_win':
+      return 'bg-amber-950/80 text-amber-300 border-amber-700/50';
+    case 'high_roi':
+      return 'bg-rose-950/80 text-rose-300 border-rose-700/50';
+    case 'ai_bet':
+      return 'bg-indigo-950/80 text-indigo-300 border-indigo-700/50';
+    case 'monitor':
+      return 'bg-slate-800 text-slate-300 border-slate-700';
   }
+}
 
-  for (const skill of distinctSkills) {
-    const regex = new RegExp(`(?<![a-z0-9])${escapeRegex(skill)}(?![a-z0-9])`, 'i');
-    if (regex.test(profileText)) {
-      userEvidence[skill] = {
-        status: 'strong_evidence',
-        evidence: 'Evidência documentada no histórico profissional e projetos do João.',
-      };
-    } else {
-      userEvidence[skill] = {
-        status: 'gap',
-        evidence: 'Sem menção no perfil atual.',
-      };
-    }
-  }
+export default async function GapsPage({ searchParams }: GapsPageProps) {
+  const params = await searchParams;
+  const trackFilter = parseTrackFilter(params.track);
 
-  const analysis = analyzeMarketGaps(jobsData, userEvidence);
+  const [allJobs, { doc: profileDoc, index: profileIndex }] = await Promise.all([
+    fetchStudyJobs(),
+    Promise.resolve(loadProfileSkills()),
+  ]);
+
+  const report = analyzeStudyIntelligence(allJobs, profileIndex, { trackFilter });
+  const trackMeta = TRACK_LABELS[trackFilter];
+
+  const trackTabs: Array<{ id: TrackFilter; count: number }> = [
+    { id: 'target', count: report.totalJobsInDatabase - report.outOfScopeJobsCount },
+    { id: 'fullstack_ts', count: report.trackCounts.fullstack_ts },
+    { id: 'ai_engineer', count: report.trackCounts.ai_engineer },
+    { id: 'backend_node_lead', count: report.trackCounts.backend_node_lead },
+    { id: 'all', count: report.totalJobsInDatabase },
+    { id: 'out_of_scope', count: report.outOfScopeJobsCount },
+  ];
 
   return (
     <div className="space-y-8">
-      {/* Banner de Inteligência */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2">
+      {/* Banner & Seletor de Trilha */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
-                Inteligência Competitiva
+                Inteligência de Estudo & Posicionamento
               </span>
-              <span className="text-xs text-slate-400">Base: {analysis.totalJobsAnalyzed} vagas analisadas</span>
+              <span className="text-xs text-slate-400">
+                Base ativa: <strong className="text-slate-200">{report.analyzedJobsCount}</strong> de{' '}
+                {report.totalJobsInDatabase} vagas ({report.outOfScopeJobsCount} fora de escopo separadas)
+              </span>
+              <span className="text-xs text-slate-500">
+                • {report.filteredNoiseRequirementsCount} rótulos genéricos filtrados
+              </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-2">
-              Análise de Gaps & Matriz de Competitividade
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              O que Estudar para Subir de Patamar no Mercado
             </h1>
-            <p className="mt-1 text-sm text-slate-400 max-w-2xl">
-              Cruzamento analítico entre a demanda real de tecnologia do mercado tech e as competências comprovadas do <strong>João Victor Longo</strong>, destacando vantagens competitivas e pontos de atenção.
+            <p className="text-sm text-slate-400 max-w-3xl">
+              Cruzamento entre as vagas da trilha <strong className="text-indigo-300">{trackMeta.label}</strong> e a
+              matriz real de proficiência de <strong>{profileDoc.owner}</strong> (
+              <code className="text-xs text-slate-300">profile/skills.json</code>), separando fortalezas de produção,
+              gaps de profundidade (Quick Wins) e lacunas técnicas reais.
             </p>
+          </div>
+          <div className="shrink-0 bg-slate-950/70 border border-slate-800 rounded-xl px-4 py-3 text-right">
+            <span className="text-[11px] uppercase tracking-wider text-slate-400 block">
+              Fit Médio na Trilha
+            </span>
+            <span className="text-3xl font-bold text-emerald-400">{report.joaoAvgFitScore}%</span>
+            <span className="text-xs text-slate-400 block mt-0.5">
+              {report.highFitCount} alto • {report.mediumFitCount} médio • {report.lowFitCount} baixo
+            </span>
           </div>
         </div>
 
-        {/* Métricas Principais */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800/80">
+        {/* Filtro de Trilhas */}
+        <div className="flex flex-wrap gap-2 pt-2">
+          {trackTabs.map((tab) => {
+            const active = trackFilter === tab.id;
+            return (
+              <Link
+                key={tab.id}
+                href={tab.id === 'target' ? '/gaps' : `/gaps?track=${tab.id}`}
+                className={`px-3 py-1.5 rounded-lg text-xs border transition-colors flex items-center gap-2 ${
+                  active
+                    ? 'bg-indigo-600 border-indigo-500 text-white font-semibold'
+                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <span>{TRACK_LABELS[tab.id].label}</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                    active ? 'bg-indigo-500/60 text-white' : 'bg-slate-800 text-slate-400'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* KPIs Reais da Trilha */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-800/80">
           <div>
-            <span className="text-xs text-slate-400">Cobertura de Requisitos (Geral)</span>
+            <span className="text-xs text-slate-400">Must-Haves em Produção Sênior</span>
             <p className="text-2xl font-bold text-emerald-400 mt-0.5">
-              {analysis.overallCoveragePercentage}%
+              {report.productionMustCoveragePct}%
             </p>
+            <span className="text-[11px] text-slate-500">
+              {report.technicalMustCoveragePct}% incluindo conhecimento parcial
+            </span>
           </div>
           <div>
-            <span className="text-xs text-slate-400">Cobertura em Must-Haves</span>
-            <p className="text-2xl font-bold text-blue-400 mt-0.5">
-              {analysis.mustHaveCoveragePercentage}%
+            <span className="text-xs text-slate-400">Gaps de Profundidade (Quick Wins)</span>
+            <p className="text-2xl font-bold text-amber-400 mt-0.5">
+              {report.depthGaps.length} skills
             </p>
+            <span className="text-[11px] text-slate-500">Você já tem base; falta produção</span>
           </div>
           <div>
-            <span className="text-xs text-slate-400">Fortalezas Nucleares</span>
-            <p className="text-2xl font-bold text-emerald-400 mt-0.5">
-              {analysis.coreAdvantages.length} skills
-            </p>
-          </div>
-          <div>
-            <span className="text-xs text-slate-400">Gaps Estratégicos</span>
+            <span className="text-xs text-slate-400">Gaps Técnicos Reais</span>
             <p className="text-2xl font-bold text-rose-400 mt-0.5">
-              {analysis.strategicGaps.length} gargalos
+              {report.technicalGaps.length} skills
             </p>
+            <span className="text-[11px] text-slate-500">Sem evidência no perfil atual</span>
+          </div>
+          <div>
+            <span className="text-xs text-slate-400">Fortalezas de Produção</span>
+            <p className="text-2xl font-bold text-blue-400 mt-0.5">
+              {report.coreAdvantages.length} skills
+            </p>
+            <span className="text-[11px] text-slate-500">
+              +{report.differentiators.length} diferenciais de nicho (moats)
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Matriz 2x2 de Competitividade */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Quadrante 1: Fortalezas Nucleares */}
-        <div className="bg-slate-900 border border-emerald-900/50 rounded-2xl p-6 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h2 className="text-base font-bold text-emerald-400 flex items-center gap-2">
-              <span>🟢 Fortalezas Nucleares (Core Advantages)</span>
+      {/* Aviso honesto de tamanho amostral quando pequeno */}
+      {report.analyzedJobsCount < 15 && (
+        <div className="bg-amber-950/20 border border-amber-800/40 rounded-xl px-5 py-3.5 text-xs text-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <span>
+            <strong>Nota de Rigor Estatístico:</strong> Esta trilha tem atualmente{' '}
+            <strong>{report.analyzedJobsCount} vagas</strong> extraídas. Os percentuais refletem exatamente a base atual
+            — ampliar a coleta para 50–100+ vagas da trilha reduzirá a variância do ranking.
+          </span>
+        </div>
+      )}
+
+      {/* SEÇÃO 1: Simulador de ROI por Cluster */}
+      {report.clusterImpacts.length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-bold text-white tracking-tight">
+              Impacto por Cluster de Estudo (Simulador de Desbloqueio)
             </h2>
-            <span className="text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-semibold border border-emerald-800/40">
-              Alta Demanda • Domínio Forte
-            </span>
+            <p className="text-xs text-slate-400 mt-1">
+              Simulação contrafactual: quanto seu Fit Médio nesta trilha sobe se você fechar cada bloco de competências
+              para nível de produção.
+            </p>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Tecnologias presentes em &ge; 15% das vagas onde você possui histórico comprovado de produção. É onde você <strong>supera a concorrência na triagem inicial</strong>:
-          </p>
-          <div className="space-y-2.5">
-            {analysis.coreAdvantages.slice(0, 6).map((item) => (
-              <div key={item.canonical} className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="font-semibold text-white capitalize text-sm">{item.canonical}</span>
-                  <span className="text-xs text-slate-400 block mt-0.5">Presente em {item.jobPercentage}% das vagas ({item.jobCount}x)</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {report.clusterImpacts.slice(0, 6).map((cluster) => (
+              <div
+                key={cluster.cluster}
+                className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-bold text-white text-sm">{cluster.cluster}</h3>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-800/40 shrink-0">
+                      +{cluster.avgTrackScoreGain} pts
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Presente em{' '}
+                    <strong className="text-slate-200">
+                      {cluster.jobsDemandingPercentage}% ({cluster.jobsDemandingCount} vagas)
+                    </strong>
+                    {cluster.jobsUnlockedToHighFit > 0 && (
+                      <span className="text-emerald-400 font-semibold">
+                        {' '}
+                        • +{cluster.jobsUnlockedToHighFit} vaga(s) viram Alto Fit (≥75%)
+                      </span>
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {cluster.skills.map((s) => (
+                      <span
+                        key={s}
+                        className="text-[11px] px-2 py-0.5 rounded bg-slate-950 text-slate-200 border border-slate-800 capitalize"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-300 font-medium border border-emerald-800/40">
-                  {item.mustCount}x obrigatória
-                </span>
+                <p className="text-[11px] text-slate-400 border-t border-slate-800/70 pt-3 leading-relaxed">
+                  <strong className="text-indigo-300">Próximo passo:</strong> {cluster.recommendedAction}
+                </p>
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* SEÇÃO 2: Ranking Priorizado de Estudo com Drill-down Literal */}
+      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h2 className="text-xl font-bold text-white tracking-tight">
+              Ranking Prioritário de Gaps para Estudo (Ordenado por ROI)
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Combina frequência como must-have, ganho simulado no Fit Score, presença em vagas Sênior/Lead e proximidade
+              da sua stack atual. Clique em <em>Ver evidências nas vagas</em> para ler exatamente o que as empresas
+              pediram.
+            </p>
+          </div>
+          <span className="text-xs text-slate-400 font-mono">
+            {report.studyPriorities.length} lacunas ranqueadas
+          </span>
         </div>
 
-        {/* Quadrante 2: Gaps Estratégicos Críticos */}
-        <div className="bg-slate-900 border border-rose-900/50 rounded-2xl p-6 space-y-4 shadow-sm">
+        {report.studyPriorities.length === 0 ? (
+          <p className="text-sm text-slate-400 py-6 text-center">
+            Nenhum gap técnico identificado nesta trilha.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {report.studyPriorities.slice(0, 12).map((item, idx) => (
+              <div
+                key={item.skill.canonical}
+                className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 sm:p-5 space-y-3"
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-xs font-mono font-bold w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-indigo-300 flex items-center justify-center">
+                      #{idx + 1}
+                    </span>
+                    <span className="text-base font-bold text-white capitalize">
+                      {item.skill.canonical}
+                    </span>
+                    <span
+                      className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${horizonBadgeClass(item.horizon)}`}
+                    >
+                      {item.horizonLabel}
+                    </span>
+                    <span className="text-[11px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
+                      {item.skill.cluster}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                    <div className="text-right">
+                      <span className="text-slate-400 block text-[10px]">Nível Atual</span>
+                      <strong
+                        className={
+                          item.skill.userStatus === 'partial_evidence'
+                            ? 'text-amber-300'
+                            : 'text-rose-300'
+                        }
+                      >
+                        {item.skill.userProficiencyLabel}
+                      </strong>
+                    </div>
+                    <div className="text-right border-l border-slate-800 pl-3">
+                      <span className="text-slate-400 block text-[10px]">Demanda</span>
+                      <strong className="text-white">
+                        {item.skill.jobPercentage}% ({item.skill.jobCount}x • {item.skill.mustCount} must)
+                      </strong>
+                    </div>
+                    <div className="text-right border-l border-slate-800 pl-3">
+                      <span className="text-slate-400 block text-[10px]">Ganho Simulado</span>
+                      <strong className="text-emerald-400 font-mono">
+                        +{item.affectedJobsAvgGain} pts/vaga
+                      </strong>
+                      {item.jobsUnlockedToHighFit > 0 && (
+                        <span className="text-[10px] text-emerald-300 block">
+                          +{item.jobsUnlockedToHighFit} Alto Fit
+                        </span>
+                      )}
+                    </div>
+                    <div className="px-2.5 py-1.5 rounded-lg bg-indigo-950/60 border border-indigo-800/40 text-center min-w-[60px]">
+                      <span className="text-[10px] text-indigo-300 block">ROI</span>
+                      <strong className="text-sm font-mono text-white">{item.priorityScore}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-2 border-t border-slate-800/60">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-slate-500 block">
+                      Por que importa no seu posicionamento
+                    </span>
+                    <p className="text-slate-300 mt-0.5 leading-relaxed">{item.whyItMatters}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-indigo-400 block">
+                      Projeto / Ação Prática Recomendada
+                    </span>
+                    <p className="text-indigo-100/90 mt-0.5 leading-relaxed">{item.studyAction}</p>
+                  </div>
+                </div>
+
+                {/* Drill-down de evidências literais nas vagas */}
+                <details className="pt-1">
+                  <summary className="cursor-pointer text-xs text-slate-400 hover:text-indigo-300 select-none">
+                    Ver evidências nas vagas ({item.skill.jobReferences.length} menções literais)
+                  </summary>
+                  <div className="mt-3 space-y-2">
+                    {item.skill.jobReferences.map((ref, refIdx) => (
+                      <div
+                        key={`${ref.jobId}-${refIdx}`}
+                        className="bg-slate-900 border border-slate-800/80 rounded-lg p-3 text-xs flex flex-col sm:flex-row sm:items-start justify-between gap-2"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/jobs/${ref.jobId}`}
+                              className="font-semibold text-blue-400 hover:underline"
+                            >
+                              {ref.title}
+                            </Link>
+                            <span
+                              className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-semibold ${
+                                ref.kind === 'must'
+                                  ? 'bg-rose-950/70 text-rose-300 border border-rose-800/40'
+                                  : 'bg-slate-800 text-slate-300'
+                              }`}
+                            >
+                              {ref.kind === 'must' ? 'Obrigatório' : 'Desejável'}
+                            </span>
+                            {ref.seniority && (
+                              <span className="text-[10px] text-slate-400">{ref.seniority}</span>
+                            )}
+                          </div>
+                          <p className="font-mono text-[11px] text-slate-300 bg-slate-950/80 px-2.5 py-1.5 rounded border border-slate-800/60">
+                            &quot;{ref.evidenceSpan}&quot;
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* SEÇÃO 3: Matriz 2x2 Limpa (4 Buckets Reais) */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 1. Fortalezas de Produção */}
+        <div className="bg-slate-900 border border-emerald-900/50 rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h2 className="text-base font-bold text-rose-400 flex items-center gap-2">
-              <span>🔴 Gaps Estratégicos Críticos</span>
+            <h2 className="text-base font-bold text-emerald-400">
+              🟢 Fortalezas de Produção Sênior
             </h2>
-            <span className="text-xs px-2 py-0.5 rounded bg-rose-950 text-rose-300 font-semibold border border-rose-800/40">
-              Alta Demanda • Lacuna Técnica
+            <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/40">
+              ≥ 20% da trilha • Produção
             </span>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Habilidades exigidas com alta frequência onde o candidato não possui evidência explícita no perfil. <strong>Motivo principal de descarte em vagas corporativas</strong>:
-          </p>
-          <div className="space-y-2.5">
-            {analysis.strategicGaps.slice(0, 6).map((item) => (
-              <div key={item.canonical} className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-white capitalize text-sm">{item.canonical}</span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 font-medium border border-rose-800/40">
-                    {item.jobPercentage}% das vagas
+          <div className="space-y-2">
+            {report.coreAdvantages.length === 0 ? (
+              <p className="text-xs text-slate-500">Nenhuma skill atingiu ≥ 20% nesta trilha.</p>
+            ) : (
+              report.coreAdvantages.slice(0, 8).map((item) => (
+                <div
+                  key={item.canonical}
+                  className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <span className="font-semibold text-white capitalize text-sm">
+                      {item.canonical}
+                    </span>
+                    <span className="text-xs text-slate-400 block">
+                      {item.jobPercentage}% das vagas ({item.jobCount}x) • {item.mustCount}x obrigatória
+                    </span>
+                  </div>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-800/40 shrink-0">
+                    Produção
                   </span>
                 </div>
-                <p className="text-xs text-rose-200/80 italic">{item.recommendation}</p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Benchmark Comparativo de Candidatos */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        {/* 2. Gaps de Profundidade (Quick Wins) */}
+        <div className="bg-slate-900 border border-amber-900/50 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 className="text-base font-bold text-amber-400">
+              🟡 Gaps de Profundidade (Quick Wins)
+            </h2>
+            <span className="text-[11px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800/40">
+              Prática / Estudo → Produção
+            </span>
+          </div>
+          <p className="text-xs text-slate-400">
+            Skills que você já usa em portfólio/estudo mas o mercado cobra com profundidade sênior. Menor esforço para
+            destravar conversão:
+          </p>
+          <div className="space-y-2">
+            {report.depthGaps.length === 0 ? (
+              <p className="text-xs text-slate-500">Nenhum gap de profundidade nesta trilha.</p>
+            ) : (
+              report.depthGaps.map((item) => (
+                <div
+                  key={item.canonical}
+                  className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-white capitalize text-sm">
+                      {item.canonical}
+                    </span>
+                    <span className="text-[11px] px-2 py-0.5 rounded bg-amber-950/70 text-amber-300 border border-amber-800/40">
+                      {item.jobPercentage}% ({item.jobCount}x) • {item.userProficiencyLabel}
+                    </span>
+                  </div>
+                  {item.evidenceSummary && (
+                    <p className="text-[11px] text-slate-400">{item.evidenceSummary}</p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* 3. Gaps Técnicos Reais */}
+        <div className="bg-slate-900 border border-rose-900/50 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 className="text-base font-bold text-rose-400">
+              🔴 Gaps Técnicos Reais da Trilha
+            </h2>
+            <span className="text-[11px] px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/40">
+              Sem evidência no perfil
+            </span>
+          </div>
+          <div className="space-y-2">
+            {report.technicalGaps.length === 0 ? (
+              <p className="text-xs text-slate-500">Nenhum gap técnico ausente nesta trilha.</p>
+            ) : (
+              report.technicalGaps.slice(0, 10).map((item) => (
+                <div
+                  key={item.canonical}
+                  className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-2"
+                >
+                  <div>
+                    <span className="font-semibold text-white capitalize text-sm">
+                      {item.canonical}
+                    </span>
+                    <span className="text-xs text-slate-400 block">
+                      {item.cluster} • {item.mustCount}x obrigatória, {item.niceCount}x desejável
+                    </span>
+                  </div>
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-rose-950/70 text-rose-300 border border-rose-800/40 shrink-0">
+                    {item.jobPercentage}% ({item.jobCount}x)
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* 4. Moats & Diferenciais */}
+        <div className="bg-slate-900 border border-indigo-900/50 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 className="text-base font-bold text-indigo-400">
+              🛡️ Diferenciais & Moats Técnicos
+            </h2>
+            <span className="text-[11px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/40">
+              Produção • Baixa oferta no mercado
+            </span>
+          </div>
+          <p className="text-xs text-slate-400">
+            Skills que você já domina e que aparecem como diferenciais decisivos em vagas específicas de Sênior/AI:
+          </p>
+          <div className="space-y-2">
+            {report.differentiators.length === 0 ? (
+              <p className="text-xs text-slate-500">
+                Todas as suas fortalezas desta trilha já atingiram ≥ 20% de demanda (listadas em Fortalezas).
+              </p>
+            ) : (
+              report.differentiators.slice(0, 8).map((item) => (
+                <div
+                  key={item.canonical}
+                  className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-2"
+                >
+                  <div>
+                    <span className="font-semibold text-white capitalize text-sm">
+                      {item.canonical}
+                    </span>
+                    <span className="text-xs text-slate-400 block">{item.cluster}</span>
+                  </div>
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-indigo-950/70 text-indigo-300 border border-indigo-800/40 shrink-0">
+                    {item.jobPercentage}% ({item.jobCount}x)
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO 4: Benchmark Dinâmico contra Concorrentes */}
+      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">
-            Benchmark de Mercado: João vs Concorrência Média
-          </h2>
-          <p className="mt-1 text-xs text-slate-400">
-            Comparativo multidimensional com os dois perfis mais frequentes que concorrem pelas mesmas oportunidades no mercado brasileiro e internacional.
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-bold text-white tracking-tight">
+              Benchmark Competitivo Dinâmico: João vs Concorrentes na Trilha
+            </h2>
+            <span className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+              Calculado nas mesmas {report.analyzedJobsCount} vagas
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-slate-400 max-w-3xl">
+            Os 3 perfis abaixo são <strong>arquétipos de referência calibrados</strong> avaliados pelo mesmo motor de
+            pontuação nas vagas desta trilha — mostrando exatamente em quais skills reais você perde ou vence cada
+            perfil concorrente.
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/40">
-                <th className="py-3.5 px-4 font-semibold">Dimensão Técnica</th>
-                <th className="py-3.5 px-4 font-semibold">Candidato Médio Full Stack TS</th>
-                <th className="py-3.5 px-4 font-semibold">Candidato Hype em IA (Júnior)</th>
-                <th className="py-3.5 px-4 font-semibold text-indigo-300 bg-indigo-950/30">
-                  João Victor Longo (Posicionamento)
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              <tr className="hover:bg-slate-800/20">
-                <td className="py-3.5 px-4 font-semibold text-white">Experiência Real</td>
-                <td className="py-3.5 px-4 text-slate-300">3–5 anos em CRUDs web comuns</td>
-                <td className="py-3.5 px-4 text-slate-300">0–2 anos (transição sem produção)</td>
-                <td className="py-3.5 px-4 font-semibold text-emerald-300 bg-indigo-950/20">
-                  ~10 anos de TI, 4 anos em SaaS B2B com ~40 mil usuários (Field Control)
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-800/20">
-                <td className="py-3.5 px-4 font-semibold text-white">Backend & APIs</td>
-                <td className="py-3.5 px-4 text-slate-300">Express/NestJS básico, ORMs simples</td>
-                <td className="py-3.5 px-4 text-slate-300">Scripts soltos em FastAPI</td>
-                <td className="py-3.5 px-4 font-semibold text-emerald-300 bg-indigo-950/20">
-                  NestJS sênior, GraphQL, PostgreSQL transacional, microsserviços e resiliência
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-800/20">
-                <td className="py-3.5 px-4 font-semibold text-white">Engenharia de IA</td>
-                <td className="py-3.5 px-4 text-slate-300">Consumo de OpenAI API sem validação</td>
-                <td className="py-3.5 px-4 text-slate-300">LangChain sem testes nem evals</td>
-                <td className="py-3.5 px-4 font-semibold text-emerald-300 bg-indigo-950/20">
-                  Structured Outputs com Zod, Grounding literal, pgvector e harness de avaliação (κ ≥ 0.80)
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-800/20">
-                <td className="py-3.5 px-4 font-semibold text-white">Bancos & Vetores</td>
-                <td className="py-3.5 px-4 text-slate-300">Prisma / TypeORM padrão</td>
-                <td className="py-3.5 px-4 text-slate-300">Pinecone ou ChromaDB soltos</td>
-                <td className="py-3.5 px-4 font-semibold text-emerald-300 bg-indigo-950/20">
-                  PostgreSQL profundo (queries analíticas, índices HNSW, constraints de integridade, pgvector)
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-800/20">
-                <td className="py-3.5 px-4 font-semibold text-white">Frontend</td>
-                <td className="py-3.5 px-4 text-slate-300">React padrão com bibliotecas de UI</td>
-                <td className="py-3.5 px-4 text-slate-300">Sem experiência de frontend</td>
-                <td className="py-3.5 px-4 font-semibold text-emerald-300 bg-indigo-950/20">
-                  Angular sólido em produção; Next.js 15 (App Router) neste projeto de portfólio
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-800/20">
-                <td className="py-3.5 px-4 font-semibold text-white">Rigor de Qualidade</td>
-                <td className="py-3.5 px-4 text-slate-300">Poucos testes, any solto</td>
-                <td className="py-3.5 px-4 text-slate-300">Sem testes, notebooks Jupyter</td>
-                <td className="py-3.5 px-4 font-semibold text-emerald-300 bg-indigo-950/20">
-                  100% dos repositórios com TS strict (`noUncheckedIndexedAccess`), Vitest e ESLint
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {report.competitorBenchmarks.map((bench) => {
+            const joaoLeads = bench.scoreDelta >= 0;
+            return (
+              <div
+                key={bench.archetype.id}
+                className="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-4 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-bold text-white text-sm">{bench.archetype.name}</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{bench.archetype.subtitle}</p>
+                  </div>
 
-      {/* Top Recomendações Acionáveis */}
-      <div className="bg-gradient-to-br from-indigo-950/30 to-slate-900 border border-indigo-900/40 rounded-2xl p-6 sm:p-8 space-y-4">
-        <h2 className="text-lg font-bold text-white">Plano de Ataque para Fechamento de Gaps</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-2">
-            <span className="font-bold text-indigo-300 block">1. Next.js (App Router) em Produção</span>
-            <p className="text-slate-300">
-              Presente em mais de 50% das vagas com foco em React. Este dashboard em Next.js fecha diretamente essa lacuna demonstrando fluência em Server Components e App Router.
-            </p>
+                  <div className="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-lg border border-slate-800 text-center">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">João</span>
+                      <strong className="text-base text-white font-mono">
+                        {bench.joaoAvgScore}%
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Concorrente</span>
+                      <strong className="text-base text-slate-300 font-mono">
+                        {bench.competitorAvgScore}%
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Delta</span>
+                      <strong
+                        className={`text-base font-mono ${
+                          joaoLeads ? 'text-emerald-400' : 'text-rose-400'
+                        }`}
+                      >
+                        {bench.scoreDelta >= 0 ? `+${bench.scoreDelta}` : bench.scoreDelta}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Onde o concorrente passa à frente */}
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-semibold text-rose-300 block">
+                      Onde este concorrente te supera ({bench.competitorAdvantages.length}):
+                    </span>
+                    {bench.competitorAdvantages.length === 0 ? (
+                      <p className="text-[11px] text-slate-500">
+                        Nenhuma vantagem técnica sobre você nesta trilha.
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {bench.competitorAdvantages.slice(0, 8).map((edge) => (
+                          <span
+                            key={edge.canonical}
+                            title={`Você: ${proficiencyLabelPtBr(edge.joaoProficiency)} | Concorrente: ${proficiencyLabelPtBr(edge.competitorProficiency)}`}
+                            className="text-[11px] px-2 py-0.5 rounded bg-rose-950/50 text-rose-200 border border-rose-800/40 capitalize"
+                          >
+                            {edge.canonical} ({edge.jobCount}x)
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Onde o João supera o concorrente */}
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-semibold text-emerald-300 block">
+                      Onde você supera este concorrente ({bench.joaoAdvantages.length}):
+                    </span>
+                    {bench.joaoAdvantages.length === 0 ? (
+                      <p className="text-[11px] text-slate-500">Sem vantagem medida nesta trilha.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {bench.joaoAdvantages.slice(0, 8).map((edge) => (
+                          <span
+                            key={edge.canonical}
+                            className="text-[11px] px-2 py-0.5 rounded bg-emerald-950/50 text-emerald-200 border border-emerald-800/40 capitalize"
+                          >
+                            {edge.canonical} ({edge.jobCount}x)
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-400 border-t border-slate-800/70 pt-3">
+                  Alto Fit (≥75%): <strong className="text-white">João {bench.joaoHighFitCount}</strong> vs{' '}
+                  <strong className="text-slate-300">Concorrente {bench.competitorHighFitCount}</strong>
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* SEÇÃO 5: Soft Skills & Idiomas (Separados) + Transparência das Vagas Fora de Escopo */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
+          <h2 className="text-base font-bold text-white">
+            Soft Skills & Idiomas (Separados da Stack Técnica)
+          </h2>
+          <p className="text-xs text-slate-400">
+            Isolados para não inflar nem distorcer seus gaps técnicos de estudo:
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {report.softSkills.length === 0 ? (
+              <span className="text-xs text-slate-500">Nenhuma soft skill extraída nesta trilha.</span>
+            ) : (
+              report.softSkills.map((s) => (
+                <span
+                  key={s.canonical}
+                  className={`text-xs px-2.5 py-1 rounded-lg border capitalize ${
+                    s.userStatus === 'strong_evidence'
+                      ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40'
+                      : s.userStatus === 'partial_evidence'
+                        ? 'bg-amber-950/40 text-amber-300 border-amber-800/40'
+                        : 'bg-slate-800 text-slate-300 border-slate-700'
+                  }`}
+                >
+                  {s.canonical} • {s.jobPercentage}% ({s.jobCount}x)
+                </span>
+              ))
+            )}
           </div>
-          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-2">
-            <span className="font-bold text-indigo-300 block">2. Mensageria Distribuída (Kafka / RabbitMQ)</span>
-            <p className="text-slate-300">
-              Destaque o design da fila BullMQ/Redis do worker e inclua no portfólio comparativos técnicos de arquitetura orientada a eventos para vagas sênior de backend.
-            </p>
-          </div>
-          <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-2">
-            <span className="font-bold text-indigo-300 block">3. Posicionar os Evals como Moat</span>
-            <p className="text-slate-300">
-              Utilize as métricas reais do harness de avaliação no LinkedIn e no currículo. Menos de 5% dos candidatos de IA possuem disciplina de medição de precisão/recall e custos.
-            </p>
-          </div>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
+          <h2 className="text-base font-bold text-white">
+            Transparência de Filtragem ({report.outOfScopeJobsCount} vagas fora de escopo)
+          </h2>
+          <p className="text-xs text-slate-400">
+            Vagas separadas automaticamente para evitar falsos gaps como C#, SAP, PHP ou estágio:
+          </p>
+          <details>
+            <summary className="cursor-pointer text-xs text-indigo-300 hover:text-indigo-200 select-none">
+              Inspecionar lista de vagas fora de escopo e motivo
+            </summary>
+            <ul className="mt-3 space-y-1.5 text-xs max-h-56 overflow-y-auto pr-1">
+              {report.outOfScopeJobs.map((j) => (
+                <li
+                  key={j.id}
+                  className="bg-slate-950/70 border border-slate-800/80 rounded-lg px-3 py-2 flex items-center justify-between gap-2"
+                >
+                  <Link href={`/jobs/${j.id}`} className="text-slate-200 hover:text-blue-400 truncate">
+                    {j.title}
+                  </Link>
+                  <span className="text-[11px] text-slate-400 shrink-0">{j.reason}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
         </div>
       </div>
     </div>
   );
-}
-
-function escapeRegex(text: string): string {
-  return text.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }

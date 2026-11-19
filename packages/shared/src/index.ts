@@ -89,6 +89,57 @@ export {
   type MarketImportance,
   type CompetitiveQuadrant,
 } from './matching/gap-analysis.js';
+export {
+  SKILL_PROFICIENCY_VALUES,
+  PROFICIENCY_SCORE_WEIGHT,
+  profileSkillEntrySchema,
+  profileSkillsSchema,
+  proficiencyToUserStatus,
+  proficiencyLabelPtBr,
+  buildProficiencyIndex,
+  profileSkillsToEvidenceMap,
+  type SkillProficiency,
+  type ProfileSkillEntry,
+  type ProfileSkillsDocument,
+} from './profile/skills-schema.js';
+export {
+  normalizeSkillForAnalysis,
+  inferSkillCluster,
+  isAnalysisNoise,
+  type SkillCluster,
+  type NormalizedAnalysisSkill,
+} from './matching/taxonomy.js';
+export {
+  JOB_TRACK_VALUES,
+  TRACK_LABELS,
+  classifyJobTrack,
+  jobMatchesTrackFilter,
+  type JobTrack,
+  type TrackFilter,
+  type JobTrackClassification,
+  type JobTrackInput,
+} from './matching/tracks.js';
+export {
+  COMPETITOR_ARCHETYPES,
+  type CompetitorArchetype,
+} from './matching/competitors.js';
+export {
+  analyzeStudyIntelligence,
+  normalizeJobRequirements,
+  computeWeightedJobScore,
+  type StudyJobRequirementInput,
+  type StudyJobInput,
+  type NormalizedJobRequirement,
+  type JobSkillReference,
+  type StudyHorizon,
+  type AnalyzedSkillDemand,
+  type StudyPriorityItem,
+  type ClusterStudyImpact,
+  type EvaluatedJobFitSummary,
+  type CompetitorSkillEdge,
+  type CompetitorBenchmarkResult,
+  type StudyIntelligenceReport,
+} from './matching/study-intelligence.js';
 
 
 

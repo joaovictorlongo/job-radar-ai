@@ -1,0 +1,235 @@
+{
+  "version": "v1",
+  "owner": "João Victor Longo",
+  "updatedAt": "2026-11-19",
+  "skills": [
+    {
+      "canonical": "typescript",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "4+ anos em produção na Field Control (SaaS B2B ~40 mil usuários) e 100% dos projetos em strict mode sem any."
+    },
+    {
+      "canonical": "javascript",
+      "proficiency": "production_senior",
+      "years": 5,
+      "evidence": "ES2022+, event loop, async/await e sistemas web/Node em produção na Field Control."
+    },
+    {
+      "canonical": "node.js",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "APIs REST/GraphQL, microsserviços e workers em produção na Field Control e projetos open source."
+    },
+    {
+      "canonical": "nestjs",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Arquitetura modular, DI, guards, interceptors, pipes e microsserviços em produção na Field Control."
+    },
+    {
+      "canonical": "graphql",
+      "proficiency": "production_senior",
+      "years": 3,
+      "evidence": "Schemas, resolvers com Dataloader/batching e prevenção de N+1 em produção na Field Control."
+    },
+    {
+      "canonical": "postgresql",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Modelagem relacional, transações ACID, tuning, constraints e pgvector HNSW em produção e Job Radar AI."
+    },
+    {
+      "canonical": "sql",
+      "proficiency": "production_senior",
+      "years": 8,
+      "evidence": "8+ anos com SQL complexo (CTEs, window functions, stored procedures, triggers) em PostgreSQL, SQL Server e Firebird."
+    },
+    {
+      "canonical": "sql server",
+      "proficiency": "production_senior",
+      "years": 6,
+      "evidence": "Sistemas ERP de missão crítica na EMBRATI Informática com stored procedures e rotinas fiscais."
+    },
+    {
+      "canonical": "mysql",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Bancos relacionais corporativos e rotinas transacionais."
+    },
+    {
+      "canonical": "angular",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Angular v14–v20+ em produção na Field Control e no projeto open-radar (standalone, signals, RxJS, OnPush)."
+    },
+    {
+      "canonical": "docker",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Multi-stage builds, Docker Compose e pipelines reproduzíveis na Field Control e Job Radar AI."
+    },
+    {
+      "canonical": "aws",
+      "proficiency": "production_senior",
+      "years": 3,
+      "evidence": "S3, SQS, ECS, RDS e IAM em produção na Field Control."
+    },
+    {
+      "canonical": "redis",
+      "proficiency": "production_senior",
+      "years": 3,
+      "evidence": "Cache, rate limiting por domínio e filas BullMQ."
+    },
+    {
+      "canonical": "git",
+      "proficiency": "production_senior",
+      "years": 6,
+      "evidence": "Fluxo diário de versionamento, code reviews rigorosos e GitHub."
+    },
+    {
+      "canonical": "ci/cd",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Pipelines de CI/CD, testes automatizados e GitHub Actions na Field Control e Job Radar AI."
+    },
+    {
+      "canonical": "github actions",
+      "proficiency": "production_senior",
+      "years": 3,
+      "evidence": "Workflows de lint, typecheck, testes com pgvector e build automatizado."
+    },
+    {
+      "canonical": "rbac / multi-tenant",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "Políticas de RBAC e arquitetura SaaS B2B multi-empresa (~5.000 empresas) na Field Control."
+    },
+    {
+      "canonical": "oauth / auth",
+      "proficiency": "production_senior",
+      "years": 4,
+      "evidence": "JWT, refresh tokens, OAuth 2.0 PKCE (Field Control e spoticli) e Argon2 (elysia-auth)."
+    },
+    {
+      "canonical": "arquitetura distribuida",
+      "proficiency": "production_senior",
+      "years": 3,
+      "evidence": "Backoff exponencial, retry idempotente em 429/5xx, circuit breakers e microsserviços em SaaS ~40k usuários."
+    },
+    {
+      "canonical": "pgvector",
+      "proficiency": "production_senior",
+      "years": 1,
+      "evidence": "Busca vetorial HNSW, distância de cosseno e RAG unificado no PostgreSQL no Job Radar AI."
+    },
+    {
+      "canonical": "evals",
+      "proficiency": "production_senior",
+      "years": 1,
+      "evidence": "Harness determinístico com dataset ouro, F1 micro/macro, Cohen's kappa e gates duros no Job Radar AI."
+    },
+    {
+      "canonical": "rag",
+      "proficiency": "production_senior",
+      "years": 1,
+      "evidence": "Pipeline RAG com chunking semântico, grounding literal e validação Zod no Job Radar AI."
+    },
+    {
+      "canonical": "llm",
+      "proficiency": "production_senior",
+      "years": 1,
+      "evidence": "Structured Outputs nativos, adapter agnóstico (OpenAI/Gemini/Ollama) e mitigação de alucinação no Job Radar AI."
+    },
+    {
+      "canonical": "openai api",
+      "proficiency": "production_senior",
+      "years": 1,
+      "evidence": "Integração via adapter OpenAI-compatible com controle de tokens, latência e custo."
+    },
+    {
+      "canonical": "embeddings",
+      "proficiency": "production_senior",
+      "years": 1,
+      "evidence": "Geração e indexação de embeddings 1536d no PostgreSQL/pgvector."
+    },
+    {
+      "canonical": "prompt engineering",
+      "proficiency": "production_senior",
+      "years": 1,
+      "evidence": "Prompts versionados com delimitação contra prompt injection e citações literais verificadas."
+    },
+    {
+      "canonical": "communication",
+      "proficiency": "production_senior",
+      "years": 8,
+      "evidence": "RFCs, ADRs, code reviews e alinhamento técnico com produto e negócio."
+    },
+    {
+      "canonical": "english",
+      "proficiency": "production_senior",
+      "years": 6,
+      "evidence": "Inglês técnico profissional para leitura, escrita de documentação, code reviews e comunicação internacional."
+    },
+    {
+      "canonical": "portuguese",
+      "proficiency": "production_senior",
+      "years": 10,
+      "evidence": "Nativo."
+    },
+    {
+      "canonical": "react",
+      "proficiency": "working_knowledge",
+      "years": 1,
+      "evidence": "Conhecimento conceitual/prático em React moderno, Ink (spoticli) e dashboard Next.js; produção principal foi em Angular."
+    },
+    {
+      "canonical": "next.js",
+      "proficiency": "working_knowledge",
+      "years": 1,
+      "evidence": "Next.js 15 App Router (Server Components) implementado no portfólio Job Radar AI; falta rodada longa em produção comercial."
+    },
+    {
+      "canonical": "python",
+      "proficiency": "working_knowledge",
+      "years": 1,
+      "evidence": "Básico/intermediário para automações, scripts de ML, CLI e pytest; sem experiência sênior em produção."
+    },
+    {
+      "canonical": "express",
+      "proficiency": "working_knowledge",
+      "years": 2,
+      "evidence": "Criação de servidores HTTP leves e middlewares."
+    },
+    {
+      "canonical": "fastify",
+      "proficiency": "working_knowledge",
+      "years": 1,
+      "evidence": "Servidores HTTP leves em Node/TS."
+    },
+    {
+      "canonical": "tailwind",
+      "proficiency": "working_knowledge",
+      "years": 1,
+      "evidence": "Estilização de dashboards e interfaces web (Job Radar AI e site Astro)."
+    },
+    {
+      "canonical": "linux",
+      "proficiency": "working_knowledge",
+      "years": 4,
+      "evidence": "Ambiente de containers Docker, CI e servidores."
+    },
+    {
+      "canonical": "leadership",
+      "proficiency": "working_knowledge",
+      "years": 2,
+      "evidence": "Mentoria informal, RFCs/ADRs e code reviews rigorosos; sem cargo formal de Tech Lead ainda."
+    },
+    {
+      "canonical": "machine learning",
+      "proficiency": "studying",
+      "years": 1,
+      "evidence": "Bacharelado em Inteligência Artificial em andamento na Univesp (2026–2030)."
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRemoteOkJob, parseRemoteOkPayload } from './remoteok.js';
+import { isEngineeringRemoteOkItem, parseRemoteOkJob, parseRemoteOkPayload } from './remoteok.js';
 
 const payload = [
   { last_updated: 1795017649, legal: 'API Terms of Service' },
@@ -41,5 +41,22 @@ describe('parseRemoteOkJob', () => {
     expect(job.postedAt).toBe('2026-11-17');
     expect(job.description).toContain('Build robotics systems');
     expect(job.description).toContain('Python');
+  });
+});
+
+describe('isEngineeringRemoteOkItem', () => {
+  it('aceita vagas de engenharia/IA e rejeita vagas não técnicas', () => {
+    expect(
+      isEngineeringRemoteOkItem({ position: 'Senior Full Stack Engineer', tags: ['node', 'react'] }),
+    ).toBe(true);
+    expect(
+      isEngineeringRemoteOkItem({ position: 'Software Engineer AI Tooling', tags: ['ai'] }),
+    ).toBe(true);
+    expect(isEngineeringRemoteOkItem({ position: 'Patient Care Specialist I', tags: [] })).toBe(
+      false,
+    );
+    expect(isEngineeringRemoteOkItem({ position: 'Scaled Account Manager EMEA', tags: [] })).toBe(
+      false,
+    );
   });
 });
